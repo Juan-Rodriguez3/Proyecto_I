@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Fri Mar 07 16:08:26 2025
+AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Sun Mar 09 00:35:28 2025
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm(13): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\M328PDEF.inc'
@@ -1047,6 +1047,7 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  .def	SET_PB=R17							//PUERTO C
                                  .def	DISPLAY=R18							//PUERTO D
                                  .def	MULTIPLEX_DISP=R19					//PUERTO B
+                                 .def	FLAG_STATE=R20						//Modos	
                                  
                                  
                                  .org 0x0000
@@ -1054,7 +1055,7 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  
                                  
                                  .org PCI1addr								//Vector de interrupcion para PCINT1 (PORTC) //0x0008
-000008 c017                          RJMP ISR_PCINT1
+000008 c05e                          RJMP ISR_PCINT1
                                  
                                  //Configurar MCU
                                  SETUP:
@@ -1069,7 +1070,7 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  	//Configuracion de puerto C
 000010 e100                      	LDI		R16, 0x10						//PINC0/4 entrada y PC5 salida
 000011 b907                      	OUT		DDRC, R16
-000012 e00f                      	LDI		R16, 0x0F						//PINC0/4 pullup activados y PC5 conduce 0 logico
+000012 e10f                      	LDI		R16, 0b00011111						//PINC0/4 pullup activados y PC5 conduce 0 logico
 000013 b908                      	OUT		PORTC, R16
                                  
                                  	//Configuracion de puerto B
@@ -1085,21 +1086,130 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
 00001b b90b                      	OUT		PORTD, R16
                                  
                                  	//Habilitar interrupciones en el puerto c
-                                 
+00001c e002                      	LDI		R16, (PCIE1<<1)					//Setear PCIE1 en PCICR
+00001d 9300 0068                 	STS		PCICR, R16						
+00001f e10f                      	LDI		R16, 0x1F						//Activar las interrupciones solo en los pines de botones
+000020 9300 006c                 	STS		PCMSK1, R16
                                  
                                  	//Deshabilitar comunicacion serial
-00001c e000                      	LDI		R16, 0x00
-00001d 9300 00c1                 	STS		UCSR0B, R16
+000022 e000                      	LDI		R16, 0x00
+000023 9300 00c1                 	STS		UCSR0B, R16
                                  
-00001f 9478                      	SEI										//Habilitar interrupciones globales
+                                 	//Valores iniciales
+000025 e010                      	LDI		SET_PB, 0x00
+000026 e030                      	LDI		MULTIPLEX_DISP, 0x00
+000027 e020                      	LDI		DISPLAY, 0x00
+000028 e040                      	LDI		FLAG_STATE, 0x00				//Por default inicia en el modo hora.
                                  
+                                 	//Usar el puntero Z como salida de display
+000029 e0f0                      	LDI		ZH, HIGH(TABLA<<1)				//Carga la parte alta de la direcci?n de tabla en el registro ZH
+00002a eee0                      	LDI		ZL, LOW(TABLA<<1)				//Carga la parte baja de la direcci?n de la tabla en el registro ZL
+00002b 9124                      	LPM		DISPLAY, Z						//Carga en R18 el valor de la tabla en ela dirrecion Z
+00002c b92b                      	OUT		PORTD, DISPLAY					//Muestra en el puerto D el valor leido de la tabla
+                                 
+00002d 9478                      	SEI										//Habilitar interrupciones globales
                                  
                                  MAIN:
+                                 	//Utilizo flag state para saber en que modo estoy
+00002e 3040                      	CPI		FLAG_STATE, 0x00
+00002f f059                      	BREQ	HORA
+000030 3041                      	CPI		FLAG_STATE, 0x01
+000031 f079                      	BREQ	FECHA
+000032 3042                      	CPI		FLAG_STATE, 0x02
+000033 f0a1                      	BREQ	CONFI_HORA
+000034 3043                      	CPI		FLAG_STATE, 0x03
+000035 f0d9                      	BREQ	CONFI_FECHA
+000036 3044                      	CPI		FLAG_STATE, 0x04
+000037 f111                      	BREQ	CONFI_ALARMA
+000038 3045                      	CPI		FLAG_STATE, 0x05
+000039 f131                      	BREQ	OFF_ALARMA
+00003a cff3                      	RJMP	MAIN
                                  
+                                 //*************Modos**************
+                                 HORA:
+00003b 9124                      	LPM		DISPLAY, Z
+00003c b92b                      	OUT		PORTD, DISPLAY
+00003d e00f                      	LDI		R16,  0x0F						//Encender los display.
+00003e b905                      	OUT		PORTB, R16
+                                 	//Apagar todas las leds de estado	
+00003f 9a2c                      	SBI		PORTB, 4						
+000040 cfed                      	RJMP	MAIN
                                  
+                                 FECHA:
+000041 9124                      	LPM		DISPLAY, Z
+000042 b92b                      	OUT		PORTD, DISPLAY
+000043 e001                      	LDI		R16,  0x01						//Encender el primero display.
+000044 b905                      	OUT		PORTB, R16
+                                 	//Apagar todas las leds de estado	
+000045 9a2c                      	SBI		PORTB, 4
+000046 9a45                      	SBI		PORTC, 5						
+000047 cfe6                      	RJMP	MAIN
+                                 		
+                                 CONFI_HORA:
+000048 9124                      	LPM		DISPLAY, Z
+000049 b92b                      	OUT		PORTD, DISPLAY
+00004a e002                      	LDI		R16,  0x02						//Encender el primero display.
+00004b b905                      	OUT		PORTB, R16
+                                 	//encender la led de la hora
+00004c e020                      	LDI		DISPLAY, 0x00
+00004d b92b                      	OUT		PORTD, DISPLAY
+00004e 9a2c                      	SBI		PORTB, 4
+00004f 9845                      	CBI		PORTC, 5
+000050 cfdd                      	RJMP	MAIN
+                                 
+                                 CONFI_FECHA:
+000051 9124                      	LPM		DISPLAY, Z
+000052 b92b                      	OUT		PORTD, DISPLAY
+000053 e003                      	LDI		R16,  0x03						//Encender el primero display.
+000054 b905                      	OUT		PORTB, R16
+000055 e037                      	LDI		MULTIPLEX_DISP, 0x07
+000056 b935                      	OUT		PORTB, MULTIPLEX_DISP
+                                 	//Encender la led de la fecha
+000057 982c                      	CBI		PORTB, 4
+000058 9845                      	CBI		PORTC, 5					
+000059 cfd4                      	RJMP	MAIN
+                                 
+                                 CONFI_ALARMA:
+00005a 9124                      	LPM		DISPLAY, Z
+00005b b92b                      	OUT		PORTD, DISPLAY
+00005c e004                      	LDI		R16,  0x04						//Encender el primero display.
+00005d b905                      	OUT		PORTB, R16
+                                 	//Encender la led de la alarma
+                                 	//LDI		R16, 0b00011111	
+                                 	//OUT		PORTC, R16
+00005e 9a45                      	SBI		PORTC, 5
+00005f cfce                      	RJMP	MAIN
+                                 
+                                 OFF_ALARMA:
+000060 9124                      	LPM		DISPLAY, Z
+000061 b92b                      	OUT		PORTD, DISPLAY
+000062 e005                      	LDI		R16,  0x05						//Encender el primero display.
+000063 b905                      	OUT		PORTB, R16
+                                 	//Apagar todas las leds de estado	
+000064 9a2c                      	SBI		PORTB, 4
+000065 9a45                      	SBI		PORTC, 5						
+000066 cfc7                      	RJMP	MAIN
+                                 //*************Modos**************
                                  
                                  
                                  ISR_PCINT1:
+000067 b116                      	IN		SET_PB, PINC					//Leer el puerto C
+000068 ff14                      	SBRS	SET_PB, 4						//Verificar la bandera de cambio de modo
+000069 9543                      	INC		FLAG_STATE						//Incrementar para cambiar de modo				
+00006a 3046                      	CPI		FLAG_STATE, 0x06				//Regresar al modo de hora.
+00006b f419                      	BRNE	RETORNO
+00006c 9631                      	ADIW	Z, 1
+00006d 8120                      	LD		DISPLAY, Z
+00006e e040                      	LDI		FLAG_STATE, 0x00				//Resetear el estado
+                                 RETORNO:
+00006f 9518                      	RETI
+                                 
+                                 // Tabla de conversi?n hexadecimal a 7 segmentos
+                                 TABLA:
+000070 81f3
+000071 e9ea
+000072 7999
+000073 c97b
 
 
 RESOURCE USE INFORMATION
@@ -1117,39 +1227,39 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega328P" register use summary:
-x  :   0 y  :   0 z  :   0 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
+x  :   0 y  :   0 z  :   9 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  18 r17:   0 r18:   0 r19:   0 r20:   0 
+r13:   0 r14:   0 r15:   0 r16:  34 r17:   3 r18:  18 r19:   3 r20:  10 
 r21:   0 r22:   0 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
-r29:   0 r30:   0 r31:   0 
-Registers used: 1 out of 35 (2.9%)
+r29:   0 r30:   1 r31:   1 
+Registers used: 8 out of 35 (22.9%)
 
 "ATmega328P" instruction use summary:
-.lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   0 and   :   0 
+.lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   1 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   0 break :   0 breq  :   0 brge  :   0 brhc  :   0 
+brcc  :   0 brcs  :   0 break :   0 breq  :   6 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
-brne  :   0 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   0 cbr   :   0 
+brne  :   1 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   3 cbr   :   0 
 clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
-cpi   :   0 cpse  :   0 dec   :   0 eor   :   0 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   0 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   :   9 lds   :   0 lpm   :   0 lsl   :   0 
+cpi   :   7 cpse  :   0 dec   :   0 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   1 inc   :   1 jmp   :   0 
+ld    :   1 ldd   :   0 ldi   :  26 lds   :   0 lpm   :  14 lsl   :   0 
 lsr   :   0 mov   :   0 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   6 pop   :   0 
-push  :   0 rcall :   0 ret   :   0 reti  :   1 rjmp  :   2 rol   :   0 
-ror   :   0 sbc   :   0 sbci  :   0 sbi   :   0 sbic  :   0 sbis  :   0 
-sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   0 sec   :   0 seh   :   0 
+neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  21 pop   :   0 
+push  :   0 rcall :   0 ret   :   0 reti  :   1 rjmp  :   9 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :   7 sbic  :   0 sbis  :   0 
+sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   1 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
-sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   3 
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   5 
 sub   :   0 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 7 out of 113 (6.2%)
+Instructions used: 18 out of 113 (15.9%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x000042     52      0     52   32768   0.2%
+[.cseg] 0x000000 0x0000ea    210     10    220   32768   0.7%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
