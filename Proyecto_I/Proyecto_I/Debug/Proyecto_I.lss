@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Mon Mar 10 00:28:01 2025
+AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Mon Mar 10 10:31:58 2025
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm(13): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\M328PDEF.inc'
@@ -1042,8 +1042,6 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  #endif  /* _M328PDEF_INC_ */
                                  
                                  ; ***** END OF FILE ******************************************************
-                                 .cseg
-                                 
                                  .def	SET_PB_A=R17						//PUERTO C
                                  .def	SET_PB_N=R21						
                                  .def	DISPLAY=R18							//PUERTO D
@@ -1052,6 +1050,15 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  .equ	T1VALUEH= 0xFC						//Valor inicial para la interrupción de 1 seg
                                  .equ	T1VALUEL= 0x2F
                                  .equ	T0VALUE=100
+                                 
+                                 .dseg
+                                 .org	SRAM_START
+000100                           UMIN:	.byte	1
+000101                           DMIN:	.byte	1
+000102                           UHOR:	.byte	1
+000103                           DHOR:	.byte	1
+                                 
+                                 .cseg
                                  
                                  .org 0x0000
 000000 c024                      	RJMP	SETUP								//Ir a la configuraciOn al inicio
@@ -1353,7 +1360,7 @@ Instructions used: 21 out of 113 (18.6%)
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
 [.cseg] 0x000000 0x000198    340     10    350   32768   1.1%
-[.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
+[.dseg] 0x000100 0x000104      0      4      4    2048   0.2%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
 Assembly complete, 0 errors, 0 warnings

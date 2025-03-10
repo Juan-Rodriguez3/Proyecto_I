@@ -11,8 +11,6 @@
 ;*****************************************
 
 .include "M328PDEF.inc"
-.cseg
-
 .def	SET_PB_A=R17						//PUERTO C
 .def	SET_PB_N=R21						
 .def	DISPLAY=R18							//PUERTO D
@@ -21,6 +19,15 @@
 .equ	T1VALUEH= 0xFC						//Valor inicial para la interrupción de 1 seg
 .equ	T1VALUEL= 0x2F
 .equ	T0VALUE=100
+
+.dseg
+.org	SRAM_START
+UMIN:	.byte	1
+DMIN:	.byte	1
+UHOR:	.byte	1
+DHOR:	.byte	1
+
+.cseg
 
 .org 0x0000
 	RJMP	SETUP								//Ir a la configuraciOn al inicio

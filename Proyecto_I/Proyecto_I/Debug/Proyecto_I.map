@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Mon Mar 10 00:28:01 2025
+AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Mon Mar 10 10:31:58 2025
 
 
 EQU  SIGNATURE_000 0000001e
@@ -703,6 +703,10 @@ DEF  FLAG_STATE   r20
 EQU  T1VALUEH     000000fc
 EQU  T1VALUEL     0000002f
 EQU  T0VALUE      00000064
+DSEG UMIN         00000100
+DSEG DMIN         00000101
+DSEG UHOR         00000102
+DSEG DHOR         00000103
 CSEG SETUP        00000025
 CSEG ISR_PCINT1   000000b1
 CSEG ISR_TIMER1   00000091
