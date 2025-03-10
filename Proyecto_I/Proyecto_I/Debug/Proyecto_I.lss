@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Sun Mar 09 00:35:28 2025
+AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Sun Mar 09 18:26:38 2025
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm(13): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\M328PDEF.inc'
@@ -1068,7 +1068,7 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
 00000e 9300 0061                 	STS		CLKPR, R16						// Configurar Prescaler a 16 F_cpu = 1MH
                                  
                                  	//Configuracion de puerto C
-000010 e100                      	LDI		R16, 0x10						//PINC0/4 entrada y PC5 salida
+000010 e200                      	LDI		R16, 0x20						//PINC0/4 entrada y PC5 salida
 000011 b907                      	OUT		DDRC, R16
 000012 e10f                      	LDI		R16, 0b00011111						//PINC0/4 pullup activados y PC5 conduce 0 logico
 000013 b908                      	OUT		PORTC, R16
@@ -1114,14 +1114,14 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
 00002e 3040                      	CPI		FLAG_STATE, 0x00
 00002f f059                      	BREQ	HORA
 000030 3041                      	CPI		FLAG_STATE, 0x01
-000031 f079                      	BREQ	FECHA
+000031 f089                      	BREQ	FECHA
 000032 3042                      	CPI		FLAG_STATE, 0x02
-000033 f0a1                      	BREQ	CONFI_HORA
+000033 f0b1                      	BREQ	CONFI_HORA
 000034 3043                      	CPI		FLAG_STATE, 0x03
 000035 f0d9                      	BREQ	CONFI_FECHA
 000036 3044                      	CPI		FLAG_STATE, 0x04
-000037 f111                      	BREQ	CONFI_ALARMA
-000038 3045                      	CPI		FLAG_STATE, 0x05
+000037 f109                      	BREQ	CONFI_ALARMA
+000038 3045                      	CPI		FLAG_STATE, 0x05   
 000039 f131                      	BREQ	OFF_ALARMA
 00003a cff3                      	RJMP	MAIN
                                  
@@ -1129,30 +1129,30 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  HORA:
 00003b 9124                      	LPM		DISPLAY, Z
 00003c b92b                      	OUT		PORTD, DISPLAY
-00003d e00f                      	LDI		R16,  0x0F						//Encender los display.
+00003d e00f                      	LDI		R16,  0b00001111					//Encender los display.
 00003e b905                      	OUT		PORTB, R16
                                  	//Apagar todas las leds de estado	
-00003f 9a2c                      	SBI		PORTB, 4						
-000040 cfed                      	RJMP	MAIN
+00003f 982c                      	CBI		PORTB, 4
+000040 982b                      	CBI		PORTB, 3   
+000041 9a45                      	SBI		PORTC, 5						
+000042 cfeb                      	RJMP	MAIN
                                  
                                  FECHA:
-000041 9124                      	LPM		DISPLAY, Z
-000042 b92b                      	OUT		PORTD, DISPLAY
-000043 e001                      	LDI		R16,  0x01						//Encender el primero display.
-000044 b905                      	OUT		PORTB, R16
-                                 	//Apagar todas las leds de estado	
-000045 9a2c                      	SBI		PORTB, 4
-000046 9a45                      	SBI		PORTC, 5						
-000047 cfe6                      	RJMP	MAIN
+000043 9124                      	LPM		DISPLAY, Z
+000044 b92b                      	OUT		PORTD, DISPLAY
+000045 e001                      	LDI		R16,  0x01						//Encender el primero display.
+000046 b905                      	OUT		PORTB, R16
+                                 	//Apagar todas las leds de estado
+000047 9a2c                      	SBI		PORTB, 4
+000048 9a45                      	SBI		PORTC, 5						
+000049 cfe4                      	RJMP	MAIN
                                  		
                                  CONFI_HORA:
-000048 9124                      	LPM		DISPLAY, Z
-000049 b92b                      	OUT		PORTD, DISPLAY
-00004a e002                      	LDI		R16,  0x02						//Encender el primero display.
-00004b b905                      	OUT		PORTB, R16
+00004a 9124                      	LPM		DISPLAY, Z
+00004b b92b                      	OUT		PORTD, DISPLAY
+00004c e002                      	LDI		R16,  0x02						//Encender el primero display.
+00004d b905                      	OUT		PORTB, R16
                                  	//encender la led de la hora
-00004c e020                      	LDI		DISPLAY, 0x00
-00004d b92b                      	OUT		PORTD, DISPLAY
 00004e 9a2c                      	SBI		PORTB, 4
 00004f 9845                      	CBI		PORTC, 5
 000050 cfdd                      	RJMP	MAIN
@@ -1163,20 +1163,20 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
 000053 e003                      	LDI		R16,  0x03						//Encender el primero display.
 000054 b905                      	OUT		PORTB, R16
 000055 e037                      	LDI		MULTIPLEX_DISP, 0x07
-000056 b935                      	OUT		PORTB, MULTIPLEX_DISP
                                  	//Encender la led de la fecha
-000057 982c                      	CBI		PORTB, 4
-000058 9845                      	CBI		PORTC, 5					
-000059 cfd4                      	RJMP	MAIN
+000056 982c                      	CBI		PORTB, 4
+000057 9845                      	CBI		PORTC, 5					
+000058 cfd5                      	RJMP	MAIN
                                  
                                  CONFI_ALARMA:
-00005a 9124                      	LPM		DISPLAY, Z
-00005b b92b                      	OUT		PORTD, DISPLAY
-00005c e004                      	LDI		R16,  0x04						//Encender el primero display.
-00005d b905                      	OUT		PORTB, R16
+000059 9124                      	LPM		DISPLAY, Z
+00005a b92b                      	OUT		PORTD, DISPLAY
+00005b e004                      	LDI		R16,  0x04						//Encender el primero display.
+00005c b905                      	OUT		PORTB, R16
                                  	//Encender la led de la alarma
                                  	//LDI		R16, 0b00011111	
                                  	//OUT		PORTC, R16
+00005d 9a2c                      	SBI		PORTB, 4
 00005e 9a45                      	SBI		PORTC, 5
 00005f cfce                      	RJMP	MAIN
                                  
@@ -1229,7 +1229,7 @@ counted separately from r26..r31 here.
 "ATmega328P" register use summary:
 x  :   0 y  :   0 z  :   9 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  34 r17:   3 r18:  18 r19:   3 r20:  10 
+r13:   0 r14:   0 r15:   0 r16:  34 r17:   3 r18:  16 r19:   2 r20:  10 
 r21:   0 r22:   0 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
 r29:   0 r30:   1 r31:   1 
 Registers used: 8 out of 35 (22.9%)
@@ -1240,16 +1240,16 @@ andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0
 brcc  :   0 brcs  :   0 break :   0 breq  :   6 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
 brne  :   1 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   3 cbr   :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   5 cbr   :   0 
 clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
 cpi   :   7 cpse  :   0 dec   :   0 eor   :   0 fmul  :   0 fmuls :   0 
 fmulsu:   0 icall :   0 ijmp  :   0 in    :   1 inc   :   1 jmp   :   0 
-ld    :   1 ldd   :   0 ldi   :  26 lds   :   0 lpm   :  14 lsl   :   0 
+ld    :   1 ldd   :   0 ldi   :  25 lds   :   0 lpm   :  14 lsl   :   0 
 lsr   :   0 mov   :   0 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  21 pop   :   0 
+neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  19 pop   :   0 
 push  :   0 rcall :   0 ret   :   0 reti  :   1 rjmp  :   9 rol   :   0 
-ror   :   0 sbc   :   0 sbci  :   0 sbi   :   7 sbic  :   0 sbis  :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :   8 sbic  :   0 sbis  :   0 
 sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   1 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
 sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   5 

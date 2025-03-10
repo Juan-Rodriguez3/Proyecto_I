@@ -37,7 +37,7 @@ SETUP:
 	STS		CLKPR, R16						// Configurar Prescaler a 16 F_cpu = 1MH
 
 	//Configuracion de puerto C
-	LDI		R16, 0x10						//PINC0/4 entrada y PC5 salida
+	LDI		R16, 0x20						//PINC0/4 entrada y PC5 salida
 	OUT		DDRC, R16
 	LDI		R16, 0b00011111						//PINC0/4 pullup activados y PC5 conduce 0 logico
 	OUT		PORTC, R16
@@ -90,7 +90,7 @@ MAIN:
 	BREQ	CONFI_FECHA
 	CPI		FLAG_STATE, 0x04
 	BREQ	CONFI_ALARMA
-	CPI		FLAG_STATE, 0x05
+	CPI		FLAG_STATE, 0x05   
 	BREQ	OFF_ALARMA
 	RJMP	MAIN
 
@@ -98,10 +98,12 @@ MAIN:
 HORA:
 	LPM		DISPLAY, Z
 	OUT		PORTD, DISPLAY
-	LDI		R16,  0x0F						//Encender los display.
+	LDI		R16,  0b00001111					//Encender los display.
 	OUT		PORTB, R16
 	//Apagar todas las leds de estado	
-	SBI		PORTB, 4						
+	CBI		PORTB, 4
+	CBI		PORTB, 3   
+	SBI		PORTC, 5						
 	RJMP	MAIN
 
 FECHA:
@@ -109,7 +111,7 @@ FECHA:
 	OUT		PORTD, DISPLAY
 	LDI		R16,  0x01						//Encender el primero display.
 	OUT		PORTB, R16
-	//Apagar todas las leds de estado	
+	//Apagar todas las leds de estado
 	SBI		PORTB, 4
 	SBI		PORTC, 5						
 	RJMP	MAIN
@@ -120,8 +122,6 @@ CONFI_HORA:
 	LDI		R16,  0x02						//Encender el primero display.
 	OUT		PORTB, R16
 	//encender la led de la hora
-	LDI		DISPLAY, 0x00
-	OUT		PORTD, DISPLAY
 	SBI		PORTB, 4
 	CBI		PORTC, 5
 	RJMP	MAIN
@@ -132,7 +132,6 @@ CONFI_FECHA:
 	LDI		R16,  0x03						//Encender el primero display.
 	OUT		PORTB, R16
 	LDI		MULTIPLEX_DISP, 0x07
-	OUT		PORTB, MULTIPLEX_DISP
 	//Encender la led de la fecha
 	CBI		PORTB, 4
 	CBI		PORTC, 5					
@@ -146,6 +145,7 @@ CONFI_ALARMA:
 	//Encender la led de la alarma
 	//LDI		R16, 0b00011111	
 	//OUT		PORTC, R16
+	SBI		PORTB, 4
 	SBI		PORTC, 5
 	RJMP	MAIN
 
