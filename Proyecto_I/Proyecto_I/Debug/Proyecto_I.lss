@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Sun Mar 09 18:26:38 2025
+AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Sun Mar 09 22:42:36 2025
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm(13): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\M328PDEF.inc'
@@ -1044,172 +1044,247 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  ; ***** END OF FILE ******************************************************
                                  .cseg
                                  
-                                 .def	SET_PB=R17							//PUERTO C
+                                 .def	SET_PB_A=R17						//PUERTO C
+                                 .def	SET_PB_N=R21						
                                  .def	DISPLAY=R18							//PUERTO D
                                  .def	MULTIPLEX_DISP=R19					//PUERTO B
                                  .def	FLAG_STATE=R20						//Modos	
-                                 
+                                 .equ	T1VALUEH= 0xFC						//Valor inicial para la interrupción de 1 seg
+                                 .equ	T1VALUEL= 0x2F
+                                 .equ	T0VALUE=100
                                  
                                  .org 0x0000
-000000 c008                      	RJMP SETUP								//Ir a la configuraciOn al inicio
+000000 c024                      	RJMP	SETUP								//Ir a la configuraciOn al inicio
                                  
                                  
                                  .org PCI1addr								//Vector de interrupcion para PCINT1 (PORTC) //0x0008
-000008 c05e                          RJMP ISR_PCINT1
+000008 c09b                          RJMP	ISR_PCINT1
+                                 
+                                 .org OVF1addr
+00001a c06f                      	RJMP	ISR_TIMER1
+                                 
+                                 .org OVF0addr
+000020 c074                      	RJMP	ISR_TIMER0
+                                 
+                                 
+                                 	//Configuracion de pila //0x08FF
+000021 ef0f                      	LDI		R16, LOW(RAMEND)			// Cargar 0xFF a R16
+000022 bf0d                      	OUT		SPL, R16					// Cargar 0xFF a SPL
+000023 e008                      	LDI		R16, HIGH(RAMEND)			//	
+000024 bf0e                      	OUT		SPH, R16					// Cargar 0x08 a SPH
                                  
                                  //Configurar MCU
                                  SETUP:
-000009 94f8                      	 CLI									//Deshabilitar interrupciones globales
+000025 94f8                      	 CLI									//Deshabilitar interrupciones globales
                                  
                                  	// Configurar Prescaler "Principal"
-00000a e800                      	LDI		R16, (1 << CLKPCE)
-00000b 9300 0061                 	STS		CLKPR, R16						// Habilitar cambio de PRESCALER
-00000d e004                      	LDI		R16, 0b00000100
-00000e 9300 0061                 	STS		CLKPR, R16						// Configurar Prescaler a 16 F_cpu = 1MH
+000026 e800                      	LDI		R16, (1 << CLKPCE)
+000027 9300 0061                 	STS		CLKPR, R16						// Habilitar cambio de PRESCALER
+000029 e004                      	LDI		R16, 0b00000100
+00002a 9300 0061                 	STS		CLKPR, R16						// Configurar Prescaler a 16 F_cpu = 1MH
+                                 	
+                                 	//Configuración de TIMER0
+00002c e003                      	LDI		R16, (1<<CS01) | (1<<CS00)		//Prescaler a 64
+00002d bd05                      	OUT		TCCR0B, R16
+                                 	
+                                 	//Configuración de TIMER1
+00002e e005                      	LDI		R16, (1<<CS02) | (1<<CS00)		//Prescaler a 1024
+00002f 9300 0081                 	STS		TCCR1B, R16
+000031 e00a                      	LDI		R16, (ICIE1<<1)					//Activar interrupciones timer1
+000032 9300 006f                 	STS		TIMSK1, R16
+                                 	//Cargar el valor inicial al timer1 para interrupción cada segundo
+000034 ef0c                      	LDI		R16, T1VALUEH
+000035 9300 0085                 	STS		TCNT1H, R16	
+000037 e20f                      	LDI		R16, T1VALUEL
+000038 9300 0084                 	STS		TCNT1L, R16	
                                  
                                  	//Configuracion de puerto C
-000010 e200                      	LDI		R16, 0x20						//PINC0/4 entrada y PC5 salida
-000011 b907                      	OUT		DDRC, R16
-000012 e10f                      	LDI		R16, 0b00011111						//PINC0/4 pullup activados y PC5 conduce 0 logico
-000013 b908                      	OUT		PORTC, R16
+00003a e200                      	LDI		R16, 0x20						//PINC0/4 entrada y PC5 salida
+00003b b907                      	OUT		DDRC, R16
+00003c e10f                      	LDI		R16, 0b00011111						//PINC0/4 pullup activados y PC5 conduce 0 logico
+00003d b908                      	OUT		PORTC, R16
                                  
                                  	//Configuracion de puerto B
-000014 e30f                      	LDI		R16, 0x3F						//Todos los pines como salida
-000015 b904                      	OUT		DDRB, R16
-000016 e000                      	LDI		R16, 0x00						//Todos los pines conducen  logico
-000017 b905                      	OUT		PORTB, R16						
+00003e e30f                      	LDI		R16, 0x3F						//Todos los pines como salida
+00003f b904                      	OUT		DDRB, R16
+000040 e000                      	LDI		R16, 0x00						//Todos los pines conducen  logico
+000041 b905                      	OUT		PORTB, R16						
                                  
                                  	//Confifuracion de puerto D
-000018 ef0f                      	LDI		R16, 0xFF						//Todos los pines como salida
-000019 b90a                      	OUT		DDRD, R16						
-00001a e000                      	LDI		R16, 0x00						//Todos los pines conducen  logico
-00001b b90b                      	OUT		PORTD, R16
+000042 ef0f                      	LDI		R16, 0xFF						//Todos los pines como salida
+000043 b90a                      	OUT		DDRD, R16						
+000044 e000                      	LDI		R16, 0x00						//Todos los pines conducen  logico
+000045 b90b                      	OUT		PORTD, R16
                                  
                                  	//Habilitar interrupciones en el puerto c
-00001c e002                      	LDI		R16, (PCIE1<<1)					//Setear PCIE1 en PCICR
-00001d 9300 0068                 	STS		PCICR, R16						
-00001f e10f                      	LDI		R16, 0x1F						//Activar las interrupciones solo en los pines de botones
-000020 9300 006c                 	STS		PCMSK1, R16
+000046 e002                      	LDI		R16, (1<<PCIE1)					//Setear PCIE1 en PCICR
+000047 9300 0068                 	STS		PCICR, R16						
+000049 e10f                      	LDI		R16, 0x1F						//Activar las interrupciones solo en los pines de botones
+00004a 9300 006c                 	STS		PCMSK1, R16
                                  
                                  	//Deshabilitar comunicacion serial
-000022 e000                      	LDI		R16, 0x00
-000023 9300 00c1                 	STS		UCSR0B, R16
+00004c e000                      	LDI		R16, 0x00
+00004d 9300 00c1                 	STS		UCSR0B, R16
                                  
                                  	//Valores iniciales
-000025 e010                      	LDI		SET_PB, 0x00
-000026 e030                      	LDI		MULTIPLEX_DISP, 0x00
-000027 e020                      	LDI		DISPLAY, 0x00
-000028 e040                      	LDI		FLAG_STATE, 0x00				//Por default inicia en el modo hora.
+00004f e11f                      	LDI		SET_PB_A, 0x1F
+000050 e050                      	LDI		SET_PB_N, 0x00
+000051 e03f                      	LDI		MULTIPLEX_DISP, 0x0F
+000052 e020                      	LDI		DISPLAY, 0x00
+000053 e040                      	LDI		FLAG_STATE, 0x00				//Por default inicia en el modo hora.
                                  
                                  	//Usar el puntero Z como salida de display
-000029 e0f0                      	LDI		ZH, HIGH(TABLA<<1)				//Carga la parte alta de la direcci?n de tabla en el registro ZH
-00002a eee0                      	LDI		ZL, LOW(TABLA<<1)				//Carga la parte baja de la direcci?n de la tabla en el registro ZL
-00002b 9124                      	LPM		DISPLAY, Z						//Carga en R18 el valor de la tabla en ela dirrecion Z
-00002c b92b                      	OUT		PORTD, DISPLAY					//Muestra en el puerto D el valor leido de la tabla
+000054 e0f1                      	LDI		ZH, HIGH(TABLA<<1)				//Carga la parte alta de la direcci?n de tabla en el registro ZH
+000055 e7e4                      	LDI		ZL, LOW(TABLA<<1)				//Carga la parte baja de la direcci?n de la tabla en el registro ZL
+000056 9124                      	LPM		DISPLAY, Z						//Carga en R18 el valor de la tabla en ela dirrecion Z
+000057 b92b                      	OUT		PORTD, DISPLAY					//Muestra en el puerto D el valor leido de la tabla
                                  
-00002d 9478                      	SEI										//Habilitar interrupciones globales
+000058 9478                      	SEI										//Habilitar interrupciones globales
                                  
                                  MAIN:
                                  	//Utilizo flag state para saber en que modo estoy
-00002e 3040                      	CPI		FLAG_STATE, 0x00
-00002f f059                      	BREQ	HORA
-000030 3041                      	CPI		FLAG_STATE, 0x01
-000031 f089                      	BREQ	FECHA
-000032 3042                      	CPI		FLAG_STATE, 0x02
-000033 f0b1                      	BREQ	CONFI_HORA
-000034 3043                      	CPI		FLAG_STATE, 0x03
-000035 f0d9                      	BREQ	CONFI_FECHA
-000036 3044                      	CPI		FLAG_STATE, 0x04
-000037 f109                      	BREQ	CONFI_ALARMA
-000038 3045                      	CPI		FLAG_STATE, 0x05   
-000039 f131                      	BREQ	OFF_ALARMA
-00003a cff3                      	RJMP	MAIN
+000059 3040                      	CPI		FLAG_STATE, 0x00
+00005a f059                      	BREQ	HORA
+00005b 3041                      	CPI		FLAG_STATE, 0x01
+00005c f079                      	BREQ	FECHA
+00005d 3042                      	CPI		FLAG_STATE, 0x02
+00005e f099                      	BREQ	CONFI_HORA
+00005f 3043                      	CPI		FLAG_STATE, 0x03
+000060 f0b9                      	BREQ	CONFI_FECHA
+000061 3044                      	CPI		FLAG_STATE, 0x04
+000062 f0d9                      	BREQ	CONFI_ALARMA
+000063 3045                      	CPI		FLAG_STATE, 0x05   
+000064 f0f9                      	BREQ	OFF_ALARMA
+000065 cff3                      	RJMP	MAIN
                                  
                                  //*************Modos**************
                                  HORA:
-00003b 9124                      	LPM		DISPLAY, Z
-00003c b92b                      	OUT		PORTD, DISPLAY
-00003d e00f                      	LDI		R16,  0b00001111					//Encender los display.
-00003e b905                      	OUT		PORTB, R16
+000066 b92b                      	OUT		PORTD, DISPLAY
+000067 e03f                      	LDI		MULTIPLEX_DISP, 0x0F
+000068 b935                      	OUT		PORTB, MULTIPLEX_DISP
                                  	//Apagar todas las leds de estado	
-00003f 982c                      	CBI		PORTB, 4
-000040 982b                      	CBI		PORTB, 3   
-000041 9a45                      	SBI		PORTC, 5						
-000042 cfeb                      	RJMP	MAIN
+000069 982c                      	CBI		PORTB, 4 
+00006a 9a45                      	SBI		PORTC, 5						
+00006b cfed                      	RJMP	MAIN
                                  
                                  FECHA:
-000043 9124                      	LPM		DISPLAY, Z
-000044 b92b                      	OUT		PORTD, DISPLAY
-000045 e001                      	LDI		R16,  0x01						//Encender el primero display.
-000046 b905                      	OUT		PORTB, R16
+00006c b92b                      	OUT		PORTD, DISPLAY
+00006d e031                      	LDI		MULTIPLEX_DISP, 0x01
+00006e b935                      	OUT		PORTB, MULTIPLEX_DISP
                                  	//Apagar todas las leds de estado
-000047 9a2c                      	SBI		PORTB, 4
-000048 9a45                      	SBI		PORTC, 5						
-000049 cfe4                      	RJMP	MAIN
+00006f 9a2c                      	SBI		PORTB, 4
+000070 9a45                      	SBI		PORTC, 5						
+000071 cfe7                      	RJMP	MAIN
                                  		
                                  CONFI_HORA:
-00004a 9124                      	LPM		DISPLAY, Z
-00004b b92b                      	OUT		PORTD, DISPLAY
-00004c e002                      	LDI		R16,  0x02						//Encender el primero display.
-00004d b905                      	OUT		PORTB, R16
+000072 b92b                      	OUT		PORTD, DISPLAY
+000073 e032                      	LDI		MULTIPLEX_DISP, 0x02
+000074 b935                      	OUT		PORTB, MULTIPLEX_DISP
                                  	//encender la led de la hora
-00004e 9a2c                      	SBI		PORTB, 4
-00004f 9845                      	CBI		PORTC, 5
-000050 cfdd                      	RJMP	MAIN
+000075 9a2c                      	SBI		PORTB, 4
+000076 9845                      	CBI		PORTC, 5
+000077 cfe1                      	RJMP	MAIN
                                  
                                  CONFI_FECHA:
-000051 9124                      	LPM		DISPLAY, Z
-000052 b92b                      	OUT		PORTD, DISPLAY
-000053 e003                      	LDI		R16,  0x03						//Encender el primero display.
-000054 b905                      	OUT		PORTB, R16
-000055 e037                      	LDI		MULTIPLEX_DISP, 0x07
+000078 b92b                      	OUT		PORTD, DISPLAY
+000079 e033                      	LDI		MULTIPLEX_DISP, 0x03
+00007a b935                      	OUT		PORTB, MULTIPLEX_DISP
                                  	//Encender la led de la fecha
-000056 982c                      	CBI		PORTB, 4
-000057 9845                      	CBI		PORTC, 5					
-000058 cfd5                      	RJMP	MAIN
+00007b 982c                      	CBI		PORTB, 4
+00007c 9845                      	CBI		PORTC, 5					
+00007d cfdb                      	RJMP	MAIN
                                  
                                  CONFI_ALARMA:
-000059 9124                      	LPM		DISPLAY, Z
-00005a b92b                      	OUT		PORTD, DISPLAY
-00005b e004                      	LDI		R16,  0x04						//Encender el primero display.
-00005c b905                      	OUT		PORTB, R16
-                                 	//Encender la led de la alarma
-                                 	//LDI		R16, 0b00011111	
-                                 	//OUT		PORTC, R16
-00005d 9a2c                      	SBI		PORTB, 4
-00005e 9a45                      	SBI		PORTC, 5
-00005f cfce                      	RJMP	MAIN
+00007e b92b                      	OUT		PORTD, DISPLAY
+00007f e034                      	LDI		MULTIPLEX_DISP, 0x04
+000080 b935                      	OUT		PORTB, MULTIPLEX_DISP
+000081 9a2c                      	SBI		PORTB, 4
+000082 9a45                      	SBI		PORTC, 5
+000083 cfd5                      	RJMP	MAIN
                                  
                                  OFF_ALARMA:
-000060 9124                      	LPM		DISPLAY, Z
-000061 b92b                      	OUT		PORTD, DISPLAY
-000062 e005                      	LDI		R16,  0x05						//Encender el primero display.
-000063 b905                      	OUT		PORTB, R16
+000084 b92b                      	OUT		PORTD, DISPLAY
+000085 e035                      	LDI		MULTIPLEX_DISP, 0x05
+000086 b935                      	OUT		PORTB, MULTIPLEX_DISP
                                  	//Apagar todas las leds de estado	
-000064 9a2c                      	SBI		PORTB, 4
-000065 9a45                      	SBI		PORTC, 5						
-000066 cfc7                      	RJMP	MAIN
+000087 9a2c                      	SBI		PORTB, 4
+000088 9a45                      	SBI		PORTC, 5						
+000089 cfcf                      	RJMP	MAIN
                                  //*************Modos**************
                                  
+                                 //*************Configuración TIMER1**********
+                                 ISR_TIMER1:
+00008a 930f                      	PUSH	R16
+00008b 9631                      	ADIW	Z, 1
+00008c 8120                      	LD		DISPLAY, Z
+00008d ef0c                      	LDI		R16, T1VALUEH
+00008e 9300 0085                 	STS		TCNT1H, R16	
+000090 e20f                      	LDI		R16, T1VALUEL
+000091 9300 0084                 	STS		TCNT1L, R16
+000093 910f                      	POP		R16
+000094 9518                      	RETI
+                                 //*************Configuración TIMER1**********
                                  
+                                 //*************Configuración TIMER0**********
+                                 
+                                 ISR_TIMER0:
+000095 930f                      	PUSH	R16 
+000096 e000                      	LDI		R16, 0x00
+000097 9300 006e                 	STS		TIMSK0, R16						//Deshabilitar las interrupciones del timer0
+                                 	//Progra de antirevote
+000099 b156                      	IN		SET_PB_N, PINC			//Releer el pinc
+00009a 1751                      	CP		SET_PB_N, SET_PB_A
+00009b f031                      	BREQ	RETORN0
+00009c 2f15                      	MOV		SET_PB_A,SET_PB_N				//Actualizar el estado de los botones
+00009d ff54                      	SBRS	SET_PB_N, 4
+00009e 9543                      	INC		FLAG_STATE
+00009f 3046                      	CPI		FLAG_STATE,0x06
+0000a0 f409                      	BRNE	RETORN0
+0000a1 e040                      	LDI		FLAG_STATE, 0x00
+                                 RETORN0:
+0000a2 910f                      	POP		R16
+0000a3 9518                      	RETI
+                                 //*************Configuración TIMER1**********
+                                 
+                                 //********Rutinas de interrupcion del pin C*******
                                  ISR_PCINT1:
-000067 b116                      	IN		SET_PB, PINC					//Leer el puerto C
-000068 ff14                      	SBRS	SET_PB, 4						//Verificar la bandera de cambio de modo
-000069 9543                      	INC		FLAG_STATE						//Incrementar para cambiar de modo				
-00006a 3046                      	CPI		FLAG_STATE, 0x06				//Regresar al modo de hora.
-00006b f419                      	BRNE	RETORNO
-00006c 9631                      	ADIW	Z, 1
-00006d 8120                      	LD		DISPLAY, Z
-00006e e040                      	LDI		FLAG_STATE, 0x00				//Resetear el estado
+                                 	//Guardar SREG y R16
+0000a4 930f                      	PUSH	R16
+0000a5 b70f                      	IN		R16, SREG
+0000a6 930f                      	PUSH	R16
+                                 
+                                 	//Progra de antirebote
+0000a7 b156                      	IN		SET_PB_N, PINC					//Leer el puerto C
+0000a8 1751                      	CP		SET_PB_N, SET_PB_A				
+0000a9 f061                      	BREQ	RETORNO	
+                                 	//Activar las interrupciones del timer0
+0000aa e001                      	LDI		R16, (1<<TOIE0)
+0000ab 9300 006e                 	STS		TIMSK0, R16						//Activar las interrupciones del timer0
+0000ad e604                      	LDI		R16, T0VALUE
+0000ae bd06                      	OUT		TCNT0, R16						//establecer el valor inicial a TCNT0 para interrumpir cada 10ms
+0000af c006                      	RJMP	RETORNO
+                                 
+                                 	//rutina de cambio de modo e incremento
+0000b0 e11f                      	LDI		SET_PB_A, 0x1F					//El estado actual debe ser de nuevo sin pulsar ningún botón.
+0000b1 ff54                      	SBRS	SET_PB_N, 4						//Verificar la bandera de cambio de modo
+0000b2 9543                      	INC		FLAG_STATE						//Incrementar para cambiar de modo				
+0000b3 3046                      	CPI		FLAG_STATE, 0x06				//Regresar al modo de hora.
+0000b4 f409                      	BRNE	RETORNO
+0000b5 e040                      	LDI		FLAG_STATE, 0x00				//Resetear el estado
                                  RETORNO:
-00006f 9518                      	RETI
+0000b6 910f                      	POP		R16
+0000b7 bf0f                      	OUT		SREG, R16
+0000b8 910f                      	POP		R16
+0000b9 9518                      	RETI
+                                 //********Rutinas de interrupcion del pin C*******
+                                 
                                  
                                  // Tabla de conversi?n hexadecimal a 7 segmentos
                                  TABLA:
-000070 81f3
-000071 e9ea
-000072 7999
-000073 c97b
+0000ba 81f3
+0000bb e9ea
+0000bc 7999
+0000bd c97b
 
 
 RESOURCE USE INFORMATION
@@ -1227,39 +1302,39 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega328P" register use summary:
-x  :   0 y  :   0 z  :   9 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
+x  :   0 y  :   0 z  :   3 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:  34 r17:   3 r18:  16 r19:   2 r20:  10 
-r21:   0 r22:   0 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
+r13:   0 r14:   0 r15:   0 r16:  56 r17:   5 r18:  10 r19:  13 r20:  13 
+r21:   8 r22:   0 r23:   0 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
 r29:   0 r30:   1 r31:   1 
-Registers used: 8 out of 35 (22.9%)
+Registers used: 9 out of 35 (25.7%)
 
 "ATmega328P" instruction use summary:
 .lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   1 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   0 break :   0 breq  :   6 brge  :   0 brhc  :   0 
+brcc  :   0 brcs  :   0 break :   0 breq  :   8 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
-brne  :   1 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   5 cbr   :   0 
+brne  :   2 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   4 cbr   :   0 
 clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   0 cls   :   0 
-clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
-cpi   :   7 cpse  :   0 dec   :   0 eor   :   0 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   1 inc   :   1 jmp   :   0 
-ld    :   1 ldd   :   0 ldi   :  25 lds   :   0 lpm   :  14 lsl   :   0 
-lsr   :   0 mov   :   0 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  19 pop   :   0 
-push  :   0 rcall :   0 ret   :   0 reti  :   1 rjmp  :   9 rol   :   0 
+clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   2 cpc   :   0 
+cpi   :   8 cpse  :   0 dec   :   0 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   3 inc   :   2 jmp   :   0 
+ld    :   1 ldd   :   0 ldi   :  39 lds   :   0 lpm   :   2 lsl   :   0 
+lsr   :   0 mov   :   1 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  24 pop   :   4 
+push  :   4 rcall :   0 ret   :   0 reti  :   3 rjmp  :  12 rol   :   0 
 ror   :   0 sbc   :   0 sbci  :   0 sbi   :   8 sbic  :   0 sbis  :   0 
-sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   1 sec   :   0 seh   :   0 
+sbiw  :   0 sbr   :   0 sbrc  :   0 sbrs  :   2 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
-sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   5 
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :  13 
 sub   :   0 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
-Instructions used: 18 out of 113 (15.9%)
+Instructions used: 22 out of 113 (19.5%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0000ea    210     10    220   32768   0.7%
+[.cseg] 0x000000 0x00017e    314     10    324   32768   1.0%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
