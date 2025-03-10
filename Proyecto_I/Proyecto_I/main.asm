@@ -17,7 +17,7 @@
 .def	SET_PB_N=R21						
 .def	DISPLAY=R18							//PUERTO D
 .def	MULTIPLEX_DISP=R19					//PUERTO B
-.def	FLAG_STATE=R20						//Modos	
+.def	FLAG_STATE=R20						//Modos		
 .equ	T1VALUEH= 0xFC						//Valor inicial para la interrupción de 1 seg
 .equ	T1VALUEL= 0x2F
 .equ	T0VALUE=100
@@ -100,6 +100,8 @@ SETUP:
 	LDI		SET_PB_N, 0x00
 	LDI		MULTIPLEX_DISP, 0x0F
 	LDI		DISPLAY, 0x00
+	LDI		R22, 0x00
+	LDI		R23, 0x00
 	LDI		FLAG_STATE, 0x00				//Por default inicia en el modo hora.
 
 	//Usar el puntero Z como salida de display
@@ -128,11 +130,13 @@ MAIN:
 
 //*************Modos**************
 HORA:
+	//LDI		DISPLAY, 0xF3
 	OUT		PORTD, DISPLAY
 	LDI		MULTIPLEX_DISP, 0x0F
 	OUT		PORTB, MULTIPLEX_DISP
 	//Apagar todas las leds de estado	
-	CBI		PORTB, 4 
+	SBI		PORTB, 5
+	SBI		PORTB, 4
 	SBI		PORTC, 5						
 	RJMP	MAIN
 
@@ -141,6 +145,7 @@ FECHA:
 	LDI		MULTIPLEX_DISP, 0x01
 	OUT		PORTB, MULTIPLEX_DISP
 	//Apagar todas las leds de estado
+	SBI		PORTB, 5
 	SBI		PORTB, 4
 	SBI		PORTC, 5						
 	RJMP	MAIN
@@ -150,7 +155,8 @@ CONFI_HORA:
 	LDI		MULTIPLEX_DISP, 0x02
 	OUT		PORTB, MULTIPLEX_DISP
 	//encender la led de la hora
-	SBI		PORTB, 4
+	CBI		PORTB, 5
+	CBI		PORTB, 4
 	CBI		PORTC, 5
 	RJMP	MAIN
 
@@ -159,16 +165,17 @@ CONFI_FECHA:
 	LDI		MULTIPLEX_DISP, 0x03
 	OUT		PORTB, MULTIPLEX_DISP
 	//Encender la led de la fecha
+	CBI		PORTB, 5
 	CBI		PORTB, 4
-	CBI		PORTC, 5					
+	SBI		PORTC, 5					
 	RJMP	MAIN
 
 CONFI_ALARMA:
 	OUT		PORTD, DISPLAY
 	LDI		MULTIPLEX_DISP, 0x04
 	OUT		PORTB, MULTIPLEX_DISP
-	SBI		PORTB, 4
-	SBI		PORTC, 5
+	SBI		PORTB, 5
+	CBI		PORTC, 5
 	RJMP	MAIN
 
 OFF_ALARMA:
@@ -176,6 +183,7 @@ OFF_ALARMA:
 	LDI		MULTIPLEX_DISP, 0x05
 	OUT		PORTB, MULTIPLEX_DISP
 	//Apagar todas las leds de estado	
+	SBI		PORTB, 5
 	SBI		PORTB, 4
 	SBI		PORTC, 5						
 	RJMP	MAIN
@@ -184,12 +192,22 @@ OFF_ALARMA:
 //*************Configuración TIMER1**********
 ISR_TIMER1:
 	PUSH	R16
-	ADIW	Z, 1
-	LD		DISPLAY, Z
+	//Reiniciar el contador del timer
 	LDI		R16, T1VALUEH
 	STS		TCNT1H, R16	
 	LDI		R16, T1VALUEL
 	STS		TCNT1L, R16
+	ADIW	Z, 1					////mover el puntero
+	//incrementar el contador
+	INC		R22						//Incrementar contador
+	CPI		R22, 10					//ovf
+	BRNE	RETORN1
+	//Reiniciar el puntero y contador
+	LDI		ZH, HIGH(TABLA<<1)				
+	LDI		ZL, LOW(TABLA<<1)									
+	LDI		R22, 0x00
+RETORN1:
+	LPM		DISPLAY, Z
 	POP		R16
 	RETI
 //*************Configuración TIMER1**********
