@@ -18,7 +18,7 @@
 .def	FLAG_STATE=R20						//Bandera de Modos
 .def	CONTADOR=R22						//Contador para displays	
 .def	FLAG_POINTS=R23						//Bandera para parpadeo de puntos
-.equ	T1VALUE= 0						//Valor inicial para la interrupción de 1 seg
+.equ	T1VALUE= 65487						//Valor inicial para la interrupción de 1 seg
 .equ	T0VALUE=100
 .equ	T2VALUE=225
 .dseg
@@ -35,32 +35,24 @@ DHOR:	.byte	1
 .org 0x0000
 	RJMP	SETUP								//Ir a la configuraciOn al inicio
 
-
-.org PCI1addr								//Vector de interrupcion para PCINT1 (PORTC) //0x0008
-    RJMP	ISR_PCINT1
-
 .org OVF1addr
 	RJMP	ISR_TIMER1
-
-.org OVF0addr
-	RJMP	ISR_TIMER0
-
-
-	//Configuracion de pila //0x08FF
-	LDI		R16, LOW(RAMEND)			// Cargar 0xFF a R16
-	OUT		SPL, R16					// Cargar 0xFF a SPL
-	LDI		R16, HIGH(RAMEND)			//	
-	OUT		SPH, R16					// Cargar 0x08 a SPH
 
 //Configurar MCU
 SETUP:
 	 CLI									//Deshabilitar interrupciones globales
 
+	 	//Configuracion de pila //0x08FF
+	LDI		R16, LOW(RAMEND)			// Cargar 0xFF a R16
+	OUT		SPL, R16					// Cargar 0xFF a SPL
+	LDI		R16, HIGH(RAMEND)			//	
+	OUT		SPH, R16					// Cargar 0x08 a SPH
+
 	// Configurar Prescaler "Principal"
-	LDI		R16, (1 << CLKPCE)  ; Cargar valor para habilitar cambios en CLKPR
-    STS		CLKPR, R16          ; Escribir en CLKPR
-    LDI		R16, (1 << CLKPS3)  ; Configurar prescaler en 8 (CLKPS3 = 1 -> Divisor 8)
-    STS		CLKPR, r16          ; Escribir en CLKPR						// Configurar Prescaler a 16 F_cpu = 1MH
+	LDI R16, (1 << CLKPCE)
+	STS CLKPR, R16 // Habilitar cambio de PRESCALER
+	LDI R16, 0b00000100
+	STS CLKPR, R16 // Configurar Prescaler a 16 F_cpu = 1MHz
 
 	//Configuración de TIMER2 
 	LDI		R16, T2VALUE
@@ -73,9 +65,11 @@ SETUP:
 	OUT		TCCR0B, R16
 	
 	//Configuración de TIMER1
-	LDI		R16,  (1 << CS12) | (1 << CS10)		//Prescaler a 1024
+	LDI		R16, 0x00
+	STS		TCCR1A, R16
+	LDI		R16,  0x05		//Prescaler a 1024
 	STS		TCCR1B, R16
-	LDI		R16, (1<<ICIE1)						//Activar interrupciones timer1
+	LDI		R16, (1 << TOIE1)					//Activar interrupciones timer1
 	STS		TIMSK1, R16
 
 	//Cargar el valor inicial al timer1 para interrupción cada segundo
@@ -85,9 +79,9 @@ SETUP:
 	STS		TCNT1L, R16	
 
 	//Configuracion de puerto C
-	LDI		R16, 0x30							//PINC0/3 entrada y PC5/4 salida
+	LDI		R16, 0x20							//PINC0/3 entrada y PC5 salida
 	OUT		DDRC, R16
-	LDI		R16, 0b00001111						//PINC0/4 pullup activados y PC5/4 conduce 0 logico
+	LDI		R16, 0b00011111						//PINC0/4 pullup activados y PC5 conduce 0 logico
 	OUT		PORTC, R16
 
 	//Configuracion de puerto B
@@ -146,7 +140,6 @@ SETUP:
 	SEI										//Habilitar interrupciones globales
 
 MAIN:
-	//Utilizo flag state para saber en que modo estoy
 	CPI		FLAG_STATE, 0x00
 	BREQ	HORA
 	CPI		FLAG_STATE, 0x01
@@ -164,7 +157,7 @@ MAIN:
 //*************Modos**************
 HORA:
 	//Apagar todas las leds de estado	
-	SBI		PORTC, 4
+	SBI		PORTB, 4
 	SBI		PORTC, 5
 	//Multiplexeo
 	//Unidades de minutos
@@ -319,10 +312,6 @@ ISR_TIMER0:
 	STS		TIMSK0, R16						//Deshabilitar las interrupciones del timer0
 	//Progra de antirevote
 	IN		SET_PB_N, PINC					//Releer el pinc
-	EOR		SET_PB_N, R3					//Borrar el valor de PC4 y PC5 que son salidas
-	IN		R16, PINB						//Releer el boton de cambio de modo
-	SBRS	R16, 4
-	EOR		SET_PB_N, R3					//Cambiar el bit 4
 	CP		SET_PB_N, SET_PB_A
 	BREQ	RETORN0
 	MOV		SET_PB_A,SET_PB_N				//Actualizar el estado de los botones
@@ -347,10 +336,6 @@ ISR_PCINT1:
 
 	//Progra de antirebote
 	IN		SET_PB_N, PINC					//Leer el puerto C
-	EOR		SET_PB_N, R3					//Borrar el valor de PC4 y PC5 que son salidas
-	IN		R16, PINB						//Leer el boton de cambio de modo
-	SBRS	R16, 4
-	EOR		SET_PB_N, R3					//Cambiar el bit 4 
 	CP		SET_PB_N, SET_PB_A				
 	BREQ	RETORNO	
 	//Activar las interrupciones del timer0
@@ -400,4 +385,4 @@ TABLA:
     .DB 0xF3, 0x81, 0xEA, 0xE9, 0x99, 0x79, 0x7B, 0xC1, 0xFB, 0xF9
 
 TABLA2:
-	.DB 0xF3, 0x12, 0xE6, 0xE5, 0x95, 0x75
+	.DB 0xF3, 0x81, 0xE6, 0xE5, 0x95, 0x75
