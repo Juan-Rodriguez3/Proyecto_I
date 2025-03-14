@@ -18,10 +18,11 @@
 .def	FLAG_STATE=R20						//Bandera de Modos
 .def	CONTADOR=R22						//Contador para displays	
 .def	FLAG_POINTS=R23						//Bandera para parpadeo de puntos
-.equ	T1VALUEH= 0xFC						//Valor inicial para la interrupción de 1 seg
-.equ	T1VALUEL= 0x2F
+.equ	T1VALUE= 0						//Valor inicial para la interrupción de 1 seg
 .equ	T0VALUE=100
+.equ	T2VALUE=225
 .dseg
+
 .org	SRAM_START
 CPOINT: .byte	1
 UMIN:	.byte	1
@@ -56,42 +57,43 @@ SETUP:
 	 CLI									//Deshabilitar interrupciones globales
 
 	// Configurar Prescaler "Principal"
-	LDI		R16, (1 << CLKPCE)
-	STS		CLKPR, R16						// Habilitar cambio de PRESCALER
-	LDI		R16, 0b00000100
-	STS		CLKPR, R16						// Configurar Prescaler a 16 F_cpu = 1MH
+	LDI		R16, (1 << CLKPCE)  ; Cargar valor para habilitar cambios en CLKPR
+    STS		CLKPR, R16          ; Escribir en CLKPR
+    LDI		R16, (1 << CLKPS3)  ; Configurar prescaler en 8 (CLKPS3 = 1 -> Divisor 8)
+    STS		CLKPR, r16          ; Escribir en CLKPR						// Configurar Prescaler a 16 F_cpu = 1MH
 
-	//Configuración de TIMER2
-    LDI     R16, 194						//Delay de 2 ms 
-    STS     TCNT2, R16						//Cargar el valor inicial
-    LDI     R16, (1 << CS21) | (1 << CS20)	//Prescaler de 32
+	//Configuración de TIMER2 
+	LDI		R16, T2VALUE
+    STS     TCNT2, R16							//Cargar el valor inicial para interupcion cada 5ms
+    LDI     R16, (1 << CS21) | (1 << CS20)					//Prescaler de 8
     STS     TCCR2B, R16
 	
 	//Configuración de TIMER0
-	LDI		R16, (1<<CS01) | (1<<CS00)		//Prescaler a 64
+	LDI		R16, (1<<CS01) | (1<<CS00)			//Prescaler a 64
 	OUT		TCCR0B, R16
 	
-	//Configuración de TIMER1 (Corregir los registros del prescaler
-	LDI		R16, (1<<CS02) | (1<<CS00)		//Prescaler a 1024
+	//Configuración de TIMER1
+	LDI		R16,  (1 << CS12) | (1 << CS10)		//Prescaler a 1024
 	STS		TCCR1B, R16
-	LDI		R16, (ICIE1<<1)					//Activar interrupciones timer1
+	LDI		R16, (1<<ICIE1)						//Activar interrupciones timer1
 	STS		TIMSK1, R16
+
 	//Cargar el valor inicial al timer1 para interrupción cada segundo
-	LDI		R16, T1VALUEH
+	LDI		R16, HIGH(T1VALUE)
 	STS		TCNT1H, R16	
-	LDI		R16, T1VALUEL
+	LDI		R16, LOW(T1VALUE)
 	STS		TCNT1L, R16	
 
 	//Configuracion de puerto C
-	LDI		R16, 0x20						//PINC0/4 entrada y PC5 salida
+	LDI		R16, 0x30							//PINC0/3 entrada y PC5/4 salida
 	OUT		DDRC, R16
-	LDI		R16, 0b00011111						//PINC0/4 pullup activados y PC5 conduce 0 logico
+	LDI		R16, 0b00001111						//PINC0/4 pullup activados y PC5/4 conduce 0 logico
 	OUT		PORTC, R16
 
 	//Configuracion de puerto B
-	LDI		R16, 0x3F						//Todos los pines como salida
+	LDI		R16, 0x2F							//Todos los pines como salida excepto PB4
 	OUT		DDRB, R16
-	LDI		R16, 0x00						//Todos los pines conducen  logico
+	LDI		R16, 0x10							//Todos los pines conducen  logico y activar pullup PB4
 	OUT		PORTB, R16						
 
 	//Confifuracion de puerto D
@@ -100,29 +102,40 @@ SETUP:
 	LDI		R16, 0x00						//Todos los pines conducen  logico
 	OUT		PORTD, R16
 
-	//Habilitar interrupciones en el puerto c
+	//Habilitar interrupciones en el puerto C
 	LDI		R16, (1<<PCIE1)					//Setear PCIE1 en PCICR
 	STS		PCICR, R16						
 	LDI		R16, 0x1F						//Activar las interrupciones solo en los pines de botones
 	STS		PCMSK1, R16
+	//Habilitar interrupciones en el puerto B
+	LDI		R16, (1<<PCIE0)					//Setear PCIE0 en PCICR
+	STS		PCICR, R16
+	LDI		R16, 0x10						//Activar las interrupciones solo en el PINB4
+	STS		PCMSK0, R16 
 
 	//Deshabilitar comunicacion serial
 	LDI		R16, 0x00
 	STS		UCSR0B, R16
 
 	//Valores iniciales
+	LDI		R16, 0x10
+	MOV		R3, R16
+	LDI		R16, 0x30
+	MOV		R2, R16
 	LDI		SET_PB_A, 0x1F
 	LDI		SET_PB_N, 0x00
 	LDI		MULTIPLEX_DISP, 0x0F
 	LDI		DISPLAY, 0x00
-	LDI		FLAG_POINTS, 0x00				//
-	LDI		FLAG_STATE, 0x00				//Por default inicia en el modo hora.
-	STS		UMIN, R16
+	LDI		FLAG_POINTS, 0x00					//Bandera para los puntos
+	LDI		FLAG_STATE, 0x00					//Por default inicia en el modo hora.
+	LDI		R16, 0x00
+	STS		UMIN, R16	
 	STS		DMIN, R16
 	STS		UHOR, R16
 	STS		DHOR, R16
 	STS		CPOINT, R16
 	LDS		CONTADOR, UMIN
+	
 
 	//Usar el puntero Z como salida de display
 	LDI		ZH, HIGH(TABLA<<1)				//Carga la parte alta de la direcci?n de tabla en el registro ZH
@@ -151,39 +164,38 @@ MAIN:
 //*************Modos**************
 HORA:
 	//Apagar todas las leds de estado	
-	SBI		PORTB, 4
+	SBI		PORTC, 4
 	SBI		PORTC, 5
-	
 	//Multiplexeo
 	//Unidades de minutos
 	LDS		CONTADOR, UMIN
-	SBI		PORTB, 3
 	CALL	MOV_POINTER
+	SBI		PORTB, 3
 	CALL	DELAY
 	CBI		PORTB, 3
 	//Decenas de minutos
 	LDS		CONTADOR, DMIN
+	CALL	MOV_POINTER2
 	SBI		PORTB, 2
-	CALL	MOV_POINTER
 	CALL	DELAY
 	CBI		PORTB, 2
 	//Unidades de horas
 	LDS		CONTADOR, UHOR
-	SBI		PORTB, 1
 	CALL	MOV_POINTER
+	SBI		PORTB, 1
 	CALL	DELAY
 	CBI		PORTB, 1
 	//Decenas de horas
 	LDS		CONTADOR, DHOR
-	SBI		PORTB, 0
 	CALL	MOV_POINTER
+	SBI		PORTB, 0
 	CALL	DELAY
 	CBI		PORTB, 0				
 	RJMP	MAIN
 
 FECHA:
 	//Apagar todas las leds de estado
-	SBI		PORTB, 4
+	SBI		PORTC, 4
 	SBI		PORTC, 5						
 	RJMP	MAIN
 		
@@ -192,7 +204,7 @@ CONFI_HORA:
 	LDI		MULTIPLEX_DISP, 0x02
 	OUT		PORTB, MULTIPLEX_DISP
 	//encender la led de la hora
-	CBI		PORTB, 4
+	CBI		PORTC, 4
 	CBI		PORTC, 5
 	RJMP	MAIN
 
@@ -201,7 +213,7 @@ CONFI_FECHA:
 	LDI		MULTIPLEX_DISP, 0x03
 	OUT		PORTB, MULTIPLEX_DISP
 	//Encender la led de la fecha
-	CBI		PORTB, 4
+	CBI		PORTC, 4
 	SBI		PORTC, 5					
 	RJMP	MAIN
 
@@ -209,8 +221,8 @@ CONFI_ALARMA:
 	OUT		PORTD, DISPLAY
 	LDI		MULTIPLEX_DISP, 0x04
 	OUT		PORTB, MULTIPLEX_DISP
-	SBI		PORTB, 4
 	CBI		PORTC, 5
+	SBI		PORTC, 4
 	RJMP	MAIN
 
 OFF_ALARMA:
@@ -218,7 +230,7 @@ OFF_ALARMA:
 	LDI		MULTIPLEX_DISP, 0x05
 	OUT		PORTB, MULTIPLEX_DISP
 	//Apagar todas las leds de estado	
-	SBI		PORTB, 4
+	SBI		PORTC, 4
 	SBI		PORTC, 5						
 	RJMP	MAIN
 //*************Modos**************
@@ -226,11 +238,13 @@ OFF_ALARMA:
 //*************Configuración TIMER1**********
 ISR_TIMER1:
 	PUSH	R16
+	IN		R16, SREG
+	PUSH	R16
 	//Reiniciar el contador del timer
-	LDI		R16, T1VALUEH
+	LDI		R16, HIGH(T1VALUE)
 	STS		TCNT1H, R16	
-	LDI		R16, T1VALUEL
-	STS		TCNT1L, R16
+	LDI		R16, LOW(T1VALUE)
+	STS		TCNT1L, R16	
 
 	//incrementar el contador de unidades	
 	LDS		CONTADOR, UMIN					//Pasar las UMIN al contador
@@ -290,6 +304,8 @@ OVERF_2:
 	
 RETORN1:
 	POP		R16
+	OUT		SREG, R16
+	POP		R16
 	RETI
 //*************Configuración TIMER1**********
 
@@ -297,10 +313,16 @@ RETORN1:
 
 ISR_TIMER0:
 	PUSH	R16 
+	IN		R16, SREG
+	PUSH	R16
 	LDI		R16, 0x00
 	STS		TIMSK0, R16						//Deshabilitar las interrupciones del timer0
 	//Progra de antirevote
 	IN		SET_PB_N, PINC					//Releer el pinc
+	EOR		SET_PB_N, R3					//Borrar el valor de PC4 y PC5 que son salidas
+	IN		R16, PINB						//Releer el boton de cambio de modo
+	SBRS	R16, 4
+	EOR		SET_PB_N, R3					//Cambiar el bit 4
 	CP		SET_PB_N, SET_PB_A
 	BREQ	RETORN0
 	MOV		SET_PB_A,SET_PB_N				//Actualizar el estado de los botones
@@ -310,6 +332,8 @@ ISR_TIMER0:
 	BRNE	RETORN0
 	LDI		FLAG_STATE, 0x00
 RETORN0:
+	POP		R16
+	OUT		SREG, R16
 	POP		R16
 	RETI
 //*************Configuración TIMER1**********
@@ -323,6 +347,10 @@ ISR_PCINT1:
 
 	//Progra de antirebote
 	IN		SET_PB_N, PINC					//Leer el puerto C
+	EOR		SET_PB_N, R3					//Borrar el valor de PC4 y PC5 que son salidas
+	IN		R16, PINB						//Leer el boton de cambio de modo
+	SBRS	R16, 4
+	EOR		SET_PB_N, R3					//Cambiar el bit 4 
 	CP		SET_PB_N, SET_PB_A				
 	BREQ	RETORNO	
 	//Activar las interrupciones del timer0
@@ -340,11 +368,11 @@ RETORNO:
 //********Subrutina**********
 DELAY:
 	IN		R16, TIFR2
-	SBRS	R16, TOV2						//Hasta que la bandera de overflow se active
-    RJMP    DELAY							//Se va a repetir el ciclo
-    SBI		TIFR2, TOV2						//Limpiar la bandera
-	LDI     R16, 194
-    STS     TCNT2, R16						//Cargar el valor inicial 
+	SBRS	R16, TOV2							//Hasta que la bandera de overflow se active
+    RJMP    DELAY								//Se va a repetir el ciclo
+    SBI		TIFR2, TOV2							//Limpiar la bandera
+	LDI		R16, T2VALUE
+    STS     TCNT2, R16							//Cargar el valor inicial 
     RET
 
 MOV_POINTER:
@@ -354,8 +382,22 @@ MOV_POINTER:
 	ADC		ZH, R1							//Se suma 0 y el carro de la parte baja	
 	LPM		DISPLAY, Z
 	OUT		PORTD, DISPLAY 
+	RET
+
+MOV_POINTER2:
+	LDI		ZH, HIGH(TABLA2<<1)				
+	LDI		ZL, LOW(TABLA2<<1)
+	ADD		ZL, CONTADOR					//Se incrementa la parte baja
+	ADC		ZH, R1							//Se suma 0 y el carro de la parte baja	
+	LPM		DISPLAY, Z
+	OUT		PORTD, DISPLAY 
+	RET
+
 //********Subrutinas**********
 
 // Tabla de conversi?n hexadecimal a 7 segmentos
 TABLA:
-    .DB 0xF3, 0x81, 0xEA, 0xE9, 0x99, 0x79, 0x7B, 0XC9, 0xFB, 0xF9
+    .DB 0xF3, 0x81, 0xEA, 0xE9, 0x99, 0x79, 0x7B, 0xC1, 0xFB, 0xF9
+
+TABLA2:
+	.DB 0xF3, 0x12, 0xE6, 0xE5, 0x95, 0x75
