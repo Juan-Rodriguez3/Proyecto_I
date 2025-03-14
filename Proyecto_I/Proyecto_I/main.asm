@@ -12,15 +12,14 @@
 
 .include "M328PDEF.inc"
 .def	SET_PB_A=R17						//PUERTO C
-.def	SET_PB_N=R21						//Estado nuevo de botones
-.def	DISPLAY=R18							//PUERTO D
-.def	MULTIPLEX_DISP=R19					//PUERTO B
+.def	SET_PB_N=R18						//Estado nuevo de botones
+.def	DISPLAY=R19							//PUERTO D
 .def	FLAG_STATE=R20						//Bandera de Modos
-.def	CONTADOR=R22						//Contador para displays	
-.def	FLAG_POINTS=R23						//Bandera para parpadeo de puntos
-.equ	T1VALUE= 65487						//Valor inicial para la interrupción de 1 seg
-.equ	T0VALUE=100
-.equ	T2VALUE=225
+.def	CONTADOR=R21						//Contador para displays	
+.def	FLAG_POINTS=R22						//Bandera para parpadeo de puntos
+.equ	T1VALUE= 65486						//Valor inicial para la interrupción de 1 seg
+.equ	T0VALUE=100							//Valor para interrupción de 10 ms
+.equ	T2VALUE=224							//Valor para interrupción de 2 ms
 .dseg
 
 .org	SRAM_START
@@ -29,35 +28,43 @@ UMIN:	.byte	1
 DMIN:	.byte	1
 UHOR:	.byte	1
 DHOR:	.byte	1
+DIAS:	.byte	1
+MES:	.byte	1
 
 .cseg
 
 .org 0x0000
 	RJMP	SETUP								//Ir a la configuraciOn al inicio
 
+.org PCI1addr
+	RJMP	ISR_PCINT1
+
 .org OVF1addr
 	RJMP	ISR_TIMER1
 
+.org OVF0addr
+	RJMP	ISR_TIMER0
+
+		//Configuracion de pila //0x08FF
+	LDI		R16, LOW(RAMEND)					// Cargar 0xFF a R16
+	OUT		SPL, R16							// Cargar 0xFF a SPL
+	LDI		R16, HIGH(RAMEND)					//	
+	OUT		SPH, R16							// Cargar 0x08 a SPH
+
 //Configurar MCU
 SETUP:
-	 CLI									//Deshabilitar interrupciones globales
-
-	 	//Configuracion de pila //0x08FF
-	LDI		R16, LOW(RAMEND)			// Cargar 0xFF a R16
-	OUT		SPL, R16					// Cargar 0xFF a SPL
-	LDI		R16, HIGH(RAMEND)			//	
-	OUT		SPH, R16					// Cargar 0x08 a SPH
+	 CLI										//Deshabilitar interrupciones globales
 
 	// Configurar Prescaler "Principal"
 	LDI R16, (1 << CLKPCE)
-	STS CLKPR, R16 // Habilitar cambio de PRESCALER
+	STS CLKPR, R16								// Habilitar cambio de PRESCALER
 	LDI R16, 0b00000100
-	STS CLKPR, R16 // Configurar Prescaler a 16 F_cpu = 1MHz
+	STS CLKPR, R16								// Configurar Prescaler a 16 F_cpu = 1MHz
 
 	//Configuración de TIMER2 
 	LDI		R16, T2VALUE
-    STS     TCNT2, R16							//Cargar el valor inicial para interupcion cada 5ms
-    LDI     R16, (1 << CS21) | (1 << CS20)					//Prescaler de 8
+    STS     TCNT2, R16							//Cargar el valor inicial para interupcion cada 2ms
+    LDI     R16, (1 << CS21) | (1 << CS20)		//Prescaler de 64
     STS     TCCR2B, R16
 	
 	//Configuración de TIMER0
@@ -65,9 +72,7 @@ SETUP:
 	OUT		TCCR0B, R16
 	
 	//Configuración de TIMER1
-	LDI		R16, 0x00
-	STS		TCCR1A, R16
-	LDI		R16,  0x05		//Prescaler a 1024
+	LDI		R16,  0x05							//Prescaler a 1024
 	STS		TCCR1B, R16
 	LDI		R16, (1 << TOIE1)					//Activar interrupciones timer1
 	STS		TIMSK1, R16
@@ -79,9 +84,9 @@ SETUP:
 	STS		TCNT1L, R16	
 
 	//Configuracion de puerto C
-	LDI		R16, 0x20							//PINC0/3 entrada y PC5 salida
+	LDI		R16, 0x30							//PINC0/3 entrada y PC5/4 salida
 	OUT		DDRC, R16
-	LDI		R16, 0b00011111						//PINC0/4 pullup activados y PC5 conduce 0 logico
+	LDI		R16, 0b00001111						//PINC0/4 pullup activados y PC5/4 conduce 0 logico
 	OUT		PORTC, R16
 
 	//Configuracion de puerto B
@@ -99,35 +104,26 @@ SETUP:
 	//Habilitar interrupciones en el puerto C
 	LDI		R16, (1<<PCIE1)					//Setear PCIE1 en PCICR
 	STS		PCICR, R16						
-	LDI		R16, 0x1F						//Activar las interrupciones solo en los pines de botones
+	LDI		R16, 0x0F						//Activar las interrupciones solo en los pines de botones
 	STS		PCMSK1, R16
-	//Habilitar interrupciones en el puerto B
-	LDI		R16, (1<<PCIE0)					//Setear PCIE0 en PCICR
-	STS		PCICR, R16
-	LDI		R16, 0x10						//Activar las interrupciones solo en el PINB4
-	STS		PCMSK0, R16 
 
 	//Deshabilitar comunicacion serial
 	LDI		R16, 0x00
 	STS		UCSR0B, R16
 
 	//Valores iniciales
-	LDI		R16, 0x10
-	MOV		R3, R16
-	LDI		R16, 0x30
-	MOV		R2, R16
 	LDI		SET_PB_A, 0x1F
 	LDI		SET_PB_N, 0x00
-	LDI		MULTIPLEX_DISP, 0x0F
 	LDI		DISPLAY, 0x00
 	LDI		FLAG_POINTS, 0x00					//Bandera para los puntos
 	LDI		FLAG_STATE, 0x00					//Por default inicia en el modo hora.
-	LDI		R16, 0x00
 	STS		UMIN, R16	
 	STS		DMIN, R16
 	STS		UHOR, R16
 	STS		DHOR, R16
 	STS		CPOINT, R16
+	STS		DIAS, R16
+	STS		MES, R16
 	LDS		CONTADOR, UMIN
 	
 
@@ -138,7 +134,12 @@ SETUP:
 	OUT		PORTD, DISPLAY					//Muestra en el puerto D el valor leido de la tabla
 
 	SEI										//Habilitar interrupciones globales
+	RJMP MAIN
 
+
+
+
+/******************LOOP***********************/	
 MAIN:
 	CPI		FLAG_STATE, 0x00
 	BREQ	HORA
@@ -151,85 +152,72 @@ MAIN:
 	CPI		FLAG_STATE, 0x04
 	BREQ	CONFI_ALARMA
 	CPI		FLAG_STATE, 0x05   
-	BREQ	OFF_ALARMA
+	BREQ	OFFAA
 	RJMP	MAIN
+/*******************LOOP***********************/	
 
-//*************Modos**************
+
+/********************Modos********************/
 HORA:
 	//Apagar todas las leds de estado	
-	SBI		PORTB, 4
+	SBI		PORTC, 4
 	SBI		PORTC, 5
 	//Multiplexeo
-	//Unidades de minutos
-	LDS		CONTADOR, UMIN
-	CALL	MOV_POINTER
-	SBI		PORTB, 3
-	CALL	DELAY
-	CBI		PORTB, 3
-	//Decenas de minutos
-	LDS		CONTADOR, DMIN
-	CALL	MOV_POINTER2
-	SBI		PORTB, 2
-	CALL	DELAY
-	CBI		PORTB, 2
-	//Unidades de horas
-	LDS		CONTADOR, UHOR
-	CALL	MOV_POINTER
-	SBI		PORTB, 1
-	CALL	DELAY
-	CBI		PORTB, 1
-	//Decenas de horas
-	LDS		CONTADOR, DHOR
-	CALL	MOV_POINTER
-	SBI		PORTB, 0
-	CALL	DELAY
-	CBI		PORTB, 0				
+	CALL	MULTIPLEXH			
 	RJMP	MAIN
 
 FECHA:
-	//Apagar todas las leds de estado
+	//Apagar todas las leds de estado	
 	SBI		PORTC, 4
-	SBI		PORTC, 5						
+	SBI		PORTC, 5	
+	//Ver que logica usar dependendie si estamos antes de agosto o despues
+	LDS		R16, MES
+	CPI		R16, 7
+	BRNE	LOVF1						//Logica antes de agosto
+
+LOVF1:
+	LDS		R16, DHORAS					//Verificar que las decenas esten en 2
+	CPI		R16, 2
+	BRNE	RETORNF
+	
+	//Si estan verificar que las unidades de hora esten en 4
+	LDS		R16, UHORAS
+	CPI		R16, 4
+	BRNE	RETORNF						//Mientras no sea 4 retornamos 
+	LDS		R16, DIAS
+RETORNF:
+						
 	RJMP	MAIN
 		
 CONFI_HORA:
-	OUT		PORTD, DISPLAY
-	LDI		MULTIPLEX_DISP, 0x02
-	OUT		PORTB, MULTIPLEX_DISP
-	//encender la led de la hora
+	//encender la led de la hora (AZUL)
 	CBI		PORTC, 4
 	CBI		PORTC, 5
 	RJMP	MAIN
 
 CONFI_FECHA:
-	OUT		PORTD, DISPLAY
-	LDI		MULTIPLEX_DISP, 0x03
-	OUT		PORTB, MULTIPLEX_DISP
-	//Encender la led de la fecha
-	CBI		PORTC, 4
-	SBI		PORTC, 5					
+	//Encender la led de la fecha (VERDE)
+	SBI		PORTC, 4
+	CBI		PORTC, 5					
 	RJMP	MAIN
 
 CONFI_ALARMA:
-	OUT		PORTD, DISPLAY
-	LDI		MULTIPLEX_DISP, 0x04
-	OUT		PORTB, MULTIPLEX_DISP
-	CBI		PORTC, 5
-	SBI		PORTC, 4
+	//Encender la led de alarma (ROJA)
+	SBI		PORTC, 5
+	CBI		PORTC, 4
 	RJMP	MAIN
 
-OFF_ALARMA:
-	OUT		PORTD, DISPLAY
-	LDI		MULTIPLEX_DISP, 0x05
-	OUT		PORTB, MULTIPLEX_DISP
+OFFAA:
 	//Apagar todas las leds de estado	
-	SBI		PORTC, 4
+	SBI		PORTB, 4
 	SBI		PORTC, 5						
 	RJMP	MAIN
-//*************Modos**************
 
-//*************Configuración TIMER1**********
+/*************Modos**************/
+
+/*************Configuración TIMER1**********/
 ISR_TIMER1:
+	PUSH	CONTADOR
 	PUSH	R16
 	IN		R16, SREG
 	PUSH	R16
@@ -274,11 +262,11 @@ ISR_TIMER1:
 	CPI		CONTADOR, 2
 	BREQ	OVERF_2	
 
-	//Overflow de unidades de hora con
-	LDS		CONTADOR, UHOR					//Se vuelve a cargar para
+	//Overflow de unidades de hora para decenas 0-1
+	LDS		CONTADOR, UHOR					//Se vuelve a cargar las unidades para comparar
 	CPI		CONTADOR, 10
 	BRNE	RETORN1
-	LDI		CONTADOR, 0x00
+	LDI		CONTADOR, 0x00					//reiniciar el contador de unidades
 	STS		UHOR, CONTADOR
 	//Incrementar el contador de decenas de horas
 	LDS		CONTADOR, DHOR
@@ -286,12 +274,13 @@ ISR_TIMER1:
 	STS		DHOR, CONTADOR
 	RJMP	RETORN1
 
+//OVF de unidades para decenas de 2
 OVERF_2:
-	LDS		CONTADOR, UHOR					//Se vuelve a cargar para
-	CPI		CONTADOR, 4
+	LDS		CONTADOR, UHOR					//se cargan las unidades para comparar
+	CPI		CONTADOR, 4						//Esta vez el limite es 4
 	BRNE	RETORN1
 	//Reiniciar los contadores de unidades y decenas de hora
-	LDI		CONTADOR, 0x00
+	LDI		CONTADOR, 0x00					//reiniciar contadores de unidades y decenas de horas
 	STS		UHOR, CONTADOR
 	STS		DHOR, CONTADOR
 	
@@ -299,10 +288,11 @@ RETORN1:
 	POP		R16
 	OUT		SREG, R16
 	POP		R16
+	POP		CONTADOR
 	RETI
-//*************Configuración TIMER1**********
+/*************Configuración TIMER1**********/
 
-//*************Configuración TIMER0**********
+/*************Configuración TIMER0**********/
 
 ISR_TIMER0:
 	PUSH	R16 
@@ -315,7 +305,7 @@ ISR_TIMER0:
 	CP		SET_PB_N, SET_PB_A
 	BREQ	RETORN0
 	MOV		SET_PB_A,SET_PB_N				//Actualizar el estado de los botones
-	SBRS	SET_PB_N, 4
+	SBRS	SET_PB_N, 3
 	INC		FLAG_STATE
 	CPI		FLAG_STATE,0x06
 	BRNE	RETORN0
@@ -333,7 +323,6 @@ ISR_PCINT1:
 	PUSH	R16
 	IN		R16, SREG
 	PUSH	R16
-
 	//Progra de antirebote
 	IN		SET_PB_N, PINC					//Leer el puerto C
 	CP		SET_PB_N, SET_PB_A				
@@ -350,7 +339,7 @@ RETORNO:
 	RETI
 //********Rutinas de interrupcion del pin C*******
 
-//********Subrutina**********
+/***************Subrutina***************/
 DELAY:
 	IN		R16, TIFR2
 	SBRS	R16, TOV2							//Hasta que la bandera de overflow se active
@@ -360,6 +349,7 @@ DELAY:
     STS     TCNT2, R16							//Cargar el valor inicial 
     RET
 
+/***************Mover los punteros***************/
 MOV_POINTER:
 	LDI		ZH, HIGH(TABLA<<1)				
 	LDI		ZL, LOW(TABLA<<1)
@@ -377,7 +367,34 @@ MOV_POINTER2:
 	LPM		DISPLAY, Z
 	OUT		PORTD, DISPLAY 
 	RET
+/***************Mover los punteros***************/
 
+MULTIPLEXH:
+	//Unidades de minutos
+	LDS		CONTADOR, UMIN
+	CALL	MOV_POINTER
+	SBI		PORTB, 3
+	CALL	DELAY
+	CBI		PORTB, 3
+	//Decenas de minutos
+	LDS		CONTADOR, DMIN
+	CALL	MOV_POINTER2
+	SBI		PORTB, 2
+	CALL	DELAY
+	CBI		PORTB, 2
+	//Unidades de horas
+	LDS		CONTADOR, UHOR
+	CALL	MOV_POINTER
+	SBI		PORTB, 1
+	CALL	DELAY
+	CBI		PORTB, 1
+	//Decenas de horas
+	LDS		CONTADOR, DHOR
+	CALL	MOV_POINTER
+	SBI		PORTB, 0
+	CALL	DELAY
+	CBI		PORTB, 0
+	RET
 //********Subrutinas**********
 
 // Tabla de conversi?n hexadecimal a 7 segmentos

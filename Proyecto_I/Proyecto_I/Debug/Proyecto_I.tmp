@@ -23,30 +23,34 @@
   <FILE>Proyecto_I.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <CPOINT><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>27</LINE></CPOINT>
-  <UMIN><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>28</LINE></UMIN>
-  <DMIN><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>29</LINE></DMIN>
-  <UHOR><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>30</LINE></UHOR>
-  <DHOR><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>31</LINE></DHOR>
-  <SETUP><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>42</LINE></SETUP>
-  <ISR_TIMER1><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>232</LINE></ISR_TIMER1>
-  <TABLA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>385</LINE></TABLA>
-  <MAIN><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>142</LINE></MAIN>
-  <HORA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>158</LINE></HORA>
-  <FECHA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>189</LINE></FECHA>
-  <CONFI_HORA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>195</LINE></CONFI_HORA>
-  <CONFI_FECHA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>204</LINE></CONFI_FECHA>
-  <CONFI_ALARMA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>213</LINE></CONFI_ALARMA>
-  <OFF_ALARMA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>221</LINE></OFF_ALARMA>
-  <MOV_POINTER><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>364</LINE></MOV_POINTER>
-  <DELAY><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>355</LINE></DELAY>
-  <MOV_POINTER2><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>373</LINE></MOV_POINTER2>
-  <RETORN1><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>298</LINE></RETORN1>
-  <OVERF_2><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>289</LINE></OVERF_2>
-  <ISR_TIMER0><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>307</LINE></ISR_TIMER0>
-  <RETORN0><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>323</LINE></RETORN0>
-  <ISR_PCINT1><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>331</LINE></ISR_PCINT1>
-  <RETORNO><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>347</LINE></RETORNO>
-  <TABLA2><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>388</LINE></TABLA2>
+  <CPOINT><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>26</LINE></CPOINT>
+  <UMIN><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>27</LINE></UMIN>
+  <DMIN><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>28</LINE></DMIN>
+  <UHOR><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>29</LINE></UHOR>
+  <DHOR><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>30</LINE></DHOR>
+  <DIAS><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>31</LINE></DIAS>
+  <MES><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>32</LINE></MES>
+  <SETUP><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>55</LINE></SETUP>
+  <ISR_PCINT1><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>312</LINE></ISR_PCINT1>
+  <ISR_TIMER1><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>210</LINE></ISR_TIMER1>
+  <ISR_TIMER0><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>288</LINE></ISR_TIMER0>
+  <TABLA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>392</LINE></TABLA>
+  <MAIN><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>143</LINE></MAIN>
+  <HORA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>161</LINE></HORA>
+  <FECHA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>169</LINE></FECHA>
+  <CONFI_HORA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>183</LINE></CONFI_HORA>
+  <CONFI_FECHA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>189</LINE></CONFI_FECHA>
+  <CONFI_ALARMA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>195</LINE></CONFI_ALARMA>
+  <OFFAA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>201</LINE></OFFAA>
+  <MULTIPLEXH><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>363</LINE></MULTIPLEXH>
+  <LOVF1><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>178</LINE></LOVF1>
+  <RETORN1><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>278</LINE></RETORN1>
+  <OVERF_2><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>269</LINE></OVERF_2>
+  <RETORN0><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>304</LINE></RETORN0>
+  <RETORNO><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>326</LINE></RETORNO>
+  <DELAY><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>334</LINE></DELAY>
+  <MOV_POINTER><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>344</LINE></MOV_POINTER>
+  <MOV_POINTER2><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>353</LINE></MOV_POINTER2>
+  <TABLA2><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>395</LINE></TABLA2>
  </LABELS>
 </ASSEMBLER_INFO>
