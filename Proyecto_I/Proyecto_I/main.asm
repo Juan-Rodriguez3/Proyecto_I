@@ -19,7 +19,7 @@
 .def	FLAGS_MP=R22						//Bandera Multiproposito
 .def	LIMIT_OVF=R23						//Contador de dias y meses
 .def	DIAS=R24							//Contador de dias y meses
-.equ	T1VALUE= 65486						//Valor inicial para la interrupción de 1 seg
+.equ	T1VALUE= 65530						//Valor inicial para la interrupción de 1 seg
 .equ	T0VALUE=100							//Valor para interrupción de 10 ms
 .equ	T2VALUE=224							//Valor para interrupción de 2 ms
 .dseg
@@ -125,11 +125,12 @@ SETUP:
 	STS		UMIN, R16								
 	STS		DMIN, R16								
 	STS		UHOR, R16								
-	STS		DHOR, R16								
-	STS		UDIAS, R16								
-	STS		UMES, R16
+	STS		DHOR, R16															
 	STS		DDIAS, R16								
-	STS		DMES, R16								
+	STS		DMES, R16
+	LDI		R16, 0x01
+	STS		UMES, R16
+	STS		UDIAS, R16								
 	LDS		CONTADOR, UMIN							
 													
 													
@@ -175,10 +176,10 @@ HORA:
 FECHA:												
 	//Apagar todas las leds de estado				
 	SBI		PORTC, 4								
-	SBI		PORTC, 5								
-	SBRS	FLAGS_MP, 0								
-	RJMP	MAIN									
-													
+	SBI		PORTC, 5
+	CALL	MULTIPLEXF									
+	SBRS	FLAGS_MP, 0								//Si FLAG OVFD >> SET Realizar ovf							
+	RJMP	MAIN																					
 	//Limpiar la bandera							
 	LDI		R16, 0x01								
 	EOR		FLAGS_MP, R16							
@@ -430,8 +431,8 @@ MULTIPLEXH:
 LOGICF:
 //Ver que logica usar dependendie si estamos antes de agosto o despues
 	LDS		R16, UMES
-	CPI		R16, 7										//
-	BRNE	LOVF1										//Logica antes de agosto
+	CPI		R16, 7										//Si es igual a 7 ir LOVF2
+	BRNE	LOVF1										//mientra no sea igual a 7 ir LOVF1
 LOVF2:
 	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 1
 	Los de 30 terminan en 0*/
@@ -457,6 +458,7 @@ INC_UD:
 	//Incrementar unidades de dias
 	LDS		R16, UDIAS			
 	INC		R16											//Incrementar las unidades de dias
+	STS		UDIAS, R16
 	CPI		R16, 10										//Si es distinto a 10 saltar
 	BRNE	RETORNF	
 	
