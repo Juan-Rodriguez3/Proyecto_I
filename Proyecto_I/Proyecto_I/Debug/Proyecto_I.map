@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Sun Mar 16 01:26:52 2025
+AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Sun Mar 16 01:32:30 2025
 
 
 EQU  SIGNATURE_000 0000001e
@@ -703,7 +703,7 @@ DEF  CONTADOR     r21
 DEF  FLAGS_MP     r22
 DEF  LIMIT_OVF    r23
 DEF  DIAS         r24
-EQU  T1VALUE      0000ffce
+EQU  T1VALUE      0000fffa
 EQU  T0VALUE      00000064
 EQU  T2VALUE      000000e0
 DSEG UMIN         00000100
