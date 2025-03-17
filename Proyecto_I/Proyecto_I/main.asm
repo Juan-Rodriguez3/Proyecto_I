@@ -120,17 +120,23 @@ SETUP:
 	LDI		DISPLAY, 0x00							
 	LDI		FLAGS_MP, 0x00							//Bandera para los puntos
 	LDI		FLAG_STATE, 0x00						//Por default inicia en el modo hora.
-	LDI		LIMIT_OVF, 0x00
-	LDI		DIAS, 0x00
+	LDI		LIMIT_OVF, 0x00							//Comparar los dias con este registro
+	LDI		DIAS, 28
+	LDI		R25, 32									//OVF de mes para meses que terminan 1
+	LDI		R26, 31									//OVF de mes para meses que terminan 0
+	//HORA
 	STS		UMIN, R16								
 	STS		DMIN, R16								
 	STS		UHOR, R16								
-	STS		DHOR, R16															
-	STS		DDIAS, R16								
+	STS		DHOR, R16		
+	//DIAS																	
 	STS		DMES, R16
 	LDI		R16, 0x01
 	STS		UMES, R16
-	STS		UDIAS, R16								
+	LDI		R16, 0x08
+	STS		UDIAS, R16
+	LDI		R16, 0x02	
+	STS		DDIAS, R16								
 	LDS		CONTADOR, UMIN							
 													
 													
@@ -225,7 +231,7 @@ ISR_TIMER1:
 	LDI		R16, LOW(T1VALUE)						
 	STS		TCNT1L, R16								
 													
-	//incrementar el contador de unidades			//
+	//incrementar el contador de unidades			
 	LDS		CONTADOR, UMIN							//Pasar las UMIN al contador
 	INC		CONTADOR								//Incrementar contador
 	STS		UMIN, CONTADOR							//Actualizar el valor de UMIN
@@ -431,51 +437,55 @@ MULTIPLEXH:
 LOGICF:
 //Ver que logica usar dependendie si estamos antes de agosto o despues
 	LDS		R16, UMES
-	CPI		R16, 7										//Si es igual a 7 ir LOVF2
+	CPI		R16, 8										//Si es igual a 7 ir LOVF2
 	BRNE	LOVF1										//mientra no sea igual a 7 ir LOVF1
 LOVF2:
-	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 1
-	Los de 30 terminan en 0*/
-	SBRC	R16, 0										//Revisar si el mes termina en 0 o en 1
-	LDI		LIMIT_OVF, 31								// 1E 0001 1110
-	SBRS	R16, 0
-	LDI		LIMIT_OVF, 30								// 1F 0001 1111
-	RJMP	INCREMENTAR_FECHA
+	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 0
+	Los de 30 terminan en 1*/
+	LDI		R25, 31										//Se cambia la lógica
+	LDI		R26, 32
 LOVF1:
-	//De enero (0x00) a Julio (0x06) los meses de 31 dias terminan en 0
-	//Los de 30 terminan en 1 excepto febrero.
+	//De enero (0x01) a Julio (0x07) los meses de 31 dias terminan en 1
+	//Los de 30 terminan en 0 excepto febrero.
 	SBRC	R16, 0										//Revisar si el mes termina en 0 o en 1
-	LDI		LIMIT_OVF, 30								// 1E 0001 1110
+	MOV		LIMIT_OVF, R25								// 1E 0001 1110
 	SBRS	R16, 0
-	LDI		LIMIT_OVF, 31								// 1F 0001 1111
+	MOV		LIMIT_OVF, R26								// 1F 0001 1111
 	CPI		R16, 2										//Mientras no sea febrero usar 30 o 31 como limite
 	BRNE	INCREMENTAR_FECHA
-	LDI		LIMIT_OVF, 28								// 1C 0001 1100
+	LDI		LIMIT_OVF, 29								// 1C 0001 1100
+
 	//Incrementar dias
-INCREMENTAR_FECHA:
+INCREMENTAR_FECHA:										
 	INC		DIAS										//Incrementar dias
+	CP		DIAS, LIMIT_OVF								//Comparar con el limite para el ovf
+	BREQ	RESET_UD										//Si es distinto al limite saltar
+
+
 INC_UD:
 	//Incrementar unidades de dias
 	LDS		R16, UDIAS			
 	INC		R16											//Incrementar las unidades de dias
 	STS		UDIAS, R16
 	CPI		R16, 10										//Si es distinto a 10 saltar
-	BRNE	RETORNF	
-	
+	BRNE	RETORNF										
+	//Se ejecuta unicamente cuando hay OVF en unidades de dias
 	//Reiniciar las unidades e incrementar las decenas
 	LDI		R16, 0x00									//Reiniciar contador de unidades dias
 	STS		UDIAS, R16									//Guardar el contador de unidades dias
 	//Incrementar decenas de dias
 	LDS		R16, DDIAS
 	INC		R16									
-	STS		DDIAS, R16							
-	CP		DIAS, LIMIT_OVF								//Comparar con el limite para el ovf
-	BRNE	RETORNF										//Si es distinto al limite saltar
-
+	STS		DDIAS, R16	
+	RJMP	RETORNF
+	
+RESET_UD:
 	//Reiniciar los dias, unidades y decenas de dias
-	LDI		DIAS, 0x00
-	STS		DDIAS, DIAS
+	LDI		DIAS, 8
 	STS		UDIAS, DIAS
+	LDI		DIAS, 2
+	STS		DDIAS, DIAS
+	LDI		DIAS, 28
 	
 	//Incrementar mes, unidades y decenas de mes
 	LDS		R16, DMES
@@ -487,10 +497,14 @@ INC_UD:
 	STS		UMES, R16
 	CPI		R16, 3										//El overflow ocurre en 2
 	BRNE	RETORNF
+	//Aca pasaron todos lo meses del año.
 	//Resetear unidades y decenas de mes
 	LDI		R16, 0x00
 	STS		UMES, R16
 	STS		DMES, R16
+	//Se reestablece la logica a la inicial
+	LDI		R25, 32
+	LDI		R26, 31	
 OVFUM:
 	//Incrementar unidades de mes cuando decenas es 0
 	LDS		R16, UMES
