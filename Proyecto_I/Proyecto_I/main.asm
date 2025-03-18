@@ -174,8 +174,14 @@ MAIN:
 HORA:												
 	//Apagar todas las leds de estado				
 	SBI		PORTC, 4								
-	SBI		PORTC, 5								
-	//Multiplexeo									
+	SBI		PORTC, 5	
+	//Actualizar reloj							
+	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
+	CALL	LOGICH	
+	//Actualizar fecha
+	SBRC	FLAGS_MP, 0
+	CALL	LOGICF
+	//Multiplexeo								
 	CALL	MULTIPLEXH								
 	RJMP	MAIN									
 													
@@ -183,6 +189,11 @@ FECHA:
 	//Apagar todas las leds de estado				
 	SBI		PORTC, 4								
 	SBI		PORTC, 5
+
+	//Actualizar CLK							
+	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
+	CALL	LOGICH
+	
 	CALL	MULTIPLEXF									
 	SBRS	FLAGS_MP, 0								//Si FLAG OVFD >> SET Realizar ovf							
 	RJMP	MAIN																					
@@ -208,20 +219,30 @@ CONFI_FECHA:
 CONFI_ALARMA:										
 	//Encender la led de alarma (ROJA)				
 	SBI		PORTC, 5								
-	CBI		PORTC, 4								
+	CBI		PORTC, 4
+	
+	//Actualizar CLK							
+	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
+	CALL	LOGICH
+									
 	RJMP	MAIN									
 													
 OFFAA:												
 	//Apagar todas las leds de estado				
 	SBI		PORTB, 4								
-	SBI		PORTC, 5								
+	SBI		PORTC, 5		
+	
+	//Actualizar CLK							
+	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
+	CALL	LOGICH
+
+							
 	RJMP	MAIN									
 													
 /*************Modos**************/					
 													
 /*************Configuración TIMER1**********/		
-ISR_TIMER1:											
-	PUSH	CONTADOR								
+ISR_TIMER1:																			
 	PUSH	R16										
 	IN		R16, SREG								
 	PUSH	R16										
@@ -229,76 +250,20 @@ ISR_TIMER1:
 	LDI		R16, HIGH(T1VALUE)						
 	STS		TCNT1H, R16								
 	LDI		R16, LOW(T1VALUE)						
-	STS		TCNT1L, R16								
-													
-	//incrementar el contador de unidades			
-	LDS		CONTADOR, UMIN							//Pasar las UMIN al contador
-	INC		CONTADOR								//Incrementar contador
-	STS		UMIN, CONTADOR							//Actualizar el valor de UMIN
-
-	//Overflow en unidades de minuto (10 minutos)
-	CPI		CONTADOR, 10							//ovf
-	BRNE	RETORN1
-
-	//Reiniciar el contador de Unidades de minutos							
-	LDI		CONTADOR, 0x00
-	STS		UMIN, CONTADOR
-	//Incrementar el contador de decenas de minutos
-	LDS		CONTADOR, DMIN
-	INC		CONTADOR
-	STS		DMIN, CONTADOR
-	//Overflow en decenas de minuto
-	CPI		CONTADOR, 6 
-	BRNE	RETORN1
-
-	//Reiniciar el contador de decenas de minutos (60)
-	LDI		CONTADOR, 0x00
-	STS		DMIN, CONTADOR
-	//Incrementar el contador de unidades de hora
-	LDS		CONTADOR, UHOR
-	INC		CONTADOR
-	STS		UHOR, CONTADOR
-
-	//El overflow de las unidades de hora dependen de las decenas de hora
-	// si decenas= 1 | 0 el overflow >>> es en 9
-	// si decenas=2  el overflow >>> es en 4
-	LDS		CONTADOR, DHOR
-	CPI		CONTADOR, 2
-	BREQ	OVERF_2	
-
-	//Overflow de unidades de hora para decenas 0-1
-	LDS		CONTADOR, UHOR								//Se vuelve a cargar las unidades para comparar
-	CPI		CONTADOR, 10
-	BRNE	RETORN1
-	LDI		CONTADOR, 0x00								//reiniciar el contador de unidades
-	STS		UHOR, CONTADOR
-	//Incrementar el contador de decenas de horas
-	LDS		CONTADOR, DHOR
-	INC		CONTADOR
-	STS		DHOR, CONTADOR
-	RJMP	RETORN1
-
-//OVF de unidades para decenas de 2
-OVERF_2:
-	LDS		CONTADOR, UHOR								//se cargan las unidades para comparar
-	CPI		CONTADOR, 4									//Esta vez el limite es 4
-	BRNE	RETORN1
-	//Reiniciar los contadores de unidades y decenas de hora
-	LDI		CONTADOR, 0x00								//reiniciar contadores de unidades y decenas de horas
-	STS		UHOR, CONTADOR
-	STS		DHOR, CONTADOR
-	//Encender bandera que incrementa DIAS
-	LDI		R16, 0x01
-	EOR		FLAGS_MP, R16
-RETORN1:
+	STS		TCNT1L, R16				
+	
+	//Activar bandera para incrementar unidades de tiempo
+	LDI		R16, 0x20								//LDI R16, (1<<CLK)
+	EOR		FLAGS_MP, R16	
+		
+	//Retorno	
 	POP		R16
 	OUT		SREG, R16
 	POP		R16
-	POP		CONTADOR
-	RETI
-/*************Configuración TIMER1**********/
+	RETI		
+/***************Configuración TIMER1************/
 
-/*************Configuración TIMER0**********/
+/***************Configuración TIMER0************/
 
 ISR_TIMER0:
 	PUSH	R16 
@@ -306,16 +271,30 @@ ISR_TIMER0:
 	PUSH	R16
 	LDI		R16, 0x00
 	STS		TIMSK0, R16									//Deshabilitar las interrupciones del timer0
+
 	//Progra de antirevote
 	IN		SET_PB_N, PINC								//Releer el pinc
 	CP		SET_PB_N, SET_PB_A
 	BREQ	RETORN0
 	MOV		SET_PB_A,SET_PB_N							//Actualizar el estado de los botones
+	//Revisar que boton se presiono
+	//Botones de configuracion.
+	LDI		R16, 0x02									//LDI	R16, (1<<Incrementar)
+	SBRS	SET_PB_N, 0									//Si presiono el boton 0, el bit 0 esta en LOW
+	EOR		FLAGS_MP, R16								//encender la bandera de incremento
+	LDI		R16, 0x04									//LDI	R16, (1<<decrementar)
+	SBRS	SET_PB_N, 1									//Si presiono el boton 1, el bit 1 esta en LOW
+	EOR		FLAGS_MP, R16								//Encender la bandera de decremento
+	LDI		R16, 0x08									//LDI	R16, (1<<UNIDEC) 
+	SBRS	SET_PB_N, 2									//Si presiono el boton 2, el bit 2 esta en LOW
+	EOR		FLAGS_MP, R16									//Encender la bandera de uni
+	//Boton de cambio de modo
 	SBRS	SET_PB_N, 3
 	INC		FLAG_STATE
 	CPI		FLAG_STATE,0x06
 	BRNE	RETORN0
 	LDI		FLAG_STATE, 0x00
+
 RETORN0:
 	POP		R16
 	OUT		SREG, R16
@@ -345,7 +324,7 @@ RETORNO:
 	RETI
 //********Rutinas de interrupcion del pin C*******
 
-/***************Subrutina***************/
+/***************Subrutinas***************/
 DELAY:
 	IN		R16, TIFR2
 	SBRS	R16, TOV2									//Hasta que la bandera de overflow se active
@@ -385,6 +364,8 @@ MULTIPLEXF:
 	CBI		PORTB, 3
 	//Decenas de minutos
 	LDS		CONTADOR, DMES
+
+
 	CALL	MOV_POINTER2
 	SBI		PORTB, 2
 	CALL	DELAY
@@ -433,9 +414,66 @@ MULTIPLEXH:
 	RET
 /***************Multiplexeo para fechas**********************/
 
+/***************Logica de CLK**********************/
+LOGICH:													
+	//incrementar el contador de unidades			
+	LDS		CONTADOR, UMIN							//Pasar las UMIN al contador
+	INC		CONTADOR								//Incrementar contador
+	STS		UMIN, CONTADOR							//Actualizar el valor de UMIN
+
+	//Overflow en unidades de minuto (10 minutos)
+	CPI		CONTADOR, 10							//ovf
+	BRNE	RETORN1
+
+	//Reiniciar el contador de Unidades de minutos							
+	LDI		CONTADOR, 0x00
+	STS		UMIN, CONTADOR
+	//Incrementar el contador de decenas de minutos
+	LDS		CONTADOR, DMIN
+	INC		CONTADOR
+	STS		DMIN, CONTADOR
+	//Overflow en decenas de minuto
+	CPI		CONTADOR, 6 
+	BRNE	RETORN1
+
+	//Reiniciar el contador de decenas de minutos (60)
+	LDI		CONTADOR, 0x00
+	STS		DMIN, CONTADOR
+	//Incrementar el contador de unidades de hora
+	LDS		CONTADOR, UHOR
+	INC		CONTADOR
+	STS		UHOR, CONTADOR
+
+	//El overflow de las unidades de hora dependen de las decenas de hora
+	// si decenas= 1 | 0 el overflow >>> es en 9
+	// si decenas=2  el overflow >>> es en 4
+	LDS		CONTADOR, DHOR
+	CPI		CONTADOR, 2
+	BREQ	OVERF_2	
+
+//OVF de unidades para decenas de 2
+OVERF_2:
+	LDS		CONTADOR, UHOR								//se cargan las unidades para comparar
+	CPI		CONTADOR, 4									//Esta vez el limite es 4
+	BRNE	RETORN1
+	//Reiniciar los contadores de unidades y decenas de hora
+	LDI		CONTADOR, 0x00								//reiniciar contadores de unidades y decenas de horas
+	STS		UHOR, CONTADOR
+	STS		DHOR, CONTADOR
+	//Encender bandera que incrementa DIAS
+	LDI		R16, 0x01									//LDI	R16, (1<<OVFD)
+	EOR		FLAGS_MP, R16								
+RETORN1:
+	RET
+/***************Logica de CLK**********************/
+
 /***************Logica para ovf de modo fecha***************/
 LOGICF:
-//Ver que logica usar dependendie si estamos antes de agosto o despues
+	//Resetear la bandera CLK
+	LDI		R16, 0x20									//LDI	R16, (1<<CLK)
+	EOR		FLAGS_MP, R16
+
+	//Ver que la logica a usar dependende si estamos antes de agosto o despues
 	LDS		R16, UMES
 	CPI		R16, 8										//Si es igual a 7 ir LOVF2
 	BRNE	LOVF1										//mientra no sea igual a 7 ir LOVF1
@@ -448,9 +486,9 @@ LOVF1:
 	//De enero (0x01) a Julio (0x07) los meses de 31 dias terminan en 1
 	//Los de 30 terminan en 0 excepto febrero.
 	SBRC	R16, 0										//Revisar si el mes termina en 0 o en 1
-	MOV		LIMIT_OVF, R25								// 1E 0001 1110
+	MOV		LIMIT_OVF, R25								// 31
 	SBRS	R16, 0
-	MOV		LIMIT_OVF, R26								// 1F 0001 1111
+	MOV		LIMIT_OVF, R26								// 30
 	CPI		R16, 2										//Mientras no sea febrero usar 30 o 31 como limite
 	BRNE	INCREMENTAR_FECHA
 	LDI		LIMIT_OVF, 29								// 1C 0001 1100
@@ -524,7 +562,7 @@ RETORNF:
 
 //********Subrutinas**********
 
-// Tabla de conversi?n hexadecimal a 7 segmentos
+// Tabla de conversion hexadecimal a 7 segmentos
 TABLA:
     .DB 0xF3, 0x81, 0xEA, 0xE9, 0x99, 0x79, 0x7B, 0xC1, 0xFB, 0xF9
 
