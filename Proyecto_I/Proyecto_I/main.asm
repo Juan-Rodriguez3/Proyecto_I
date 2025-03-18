@@ -421,7 +421,11 @@ MULTIPLEXH:
 /***************Multiplexeo para fechas**********************/
 
 /***************Logica de CLK**********************/
-LOGICH:													
+LOGICH:	
+	//Limpiar bandera de clock
+	LDI		R16, 0x20								//LDI	R16, (1<<CLK)
+	EOR		FLAGS_MP, R16
+													
 	//incrementar el contador de unidades			
 	LDS		CONTADOR, UMIN							//Pasar las UMIN al contador
 	INC		CONTADOR								//Incrementar contador
@@ -434,10 +438,12 @@ LOGICH:
 	//Reiniciar el contador de Unidades de minutos							
 	LDI		CONTADOR, 0x00
 	STS		UMIN, CONTADOR
+
 	//Incrementar el contador de decenas de minutos
 	LDS		CONTADOR, DMIN
 	INC		CONTADOR
 	STS		DMIN, CONTADOR
+
 	//Overflow en decenas de minuto
 	CPI		CONTADOR, 6 
 	BRNE	RETORN1
@@ -445,6 +451,7 @@ LOGICH:
 	//Reiniciar el contador de decenas de minutos (60)
 	LDI		CONTADOR, 0x00
 	STS		DMIN, CONTADOR
+
 	//Incrementar el contador de unidades de hora
 	LDS		CONTADOR, UHOR
 	INC		CONTADOR
@@ -456,26 +463,31 @@ LOGICH:
 	LDS		CONTADOR, DHOR
 	CPI		CONTADOR, 2
 	BREQ	OVERF_2	
+
 	//Overflow de unidades de hora para decenas 0-1
 	LDS		CONTADOR, UHOR								//Se vuelve a cargar las unidades para comparar
 	CPI		CONTADOR, 10
 	BRNE	RETORN1
 	LDI		CONTADOR, 0x00								//reiniciar el contador de unidades
 	STS		UHOR, CONTADOR
+
 	//Incrementar el contador de decenas de horas
 	LDS		CONTADOR, DHOR
 	INC		CONTADOR
 	STS		DHOR, CONTADOR
 	RJMP	RETORN1
+
 //OVF de unidades para decenas de 2
 OVERF_2:
 	LDS		CONTADOR, UHOR								//se cargan las unidades para comparar
 	CPI		CONTADOR, 4									//Esta vez el limite es 4
 	BRNE	RETORN1
+
 	//Reiniciar los contadores de unidades y decenas de hora
 	LDI		CONTADOR, 0x00								//reiniciar contadores de unidades y decenas de horas
 	STS		UHOR, CONTADOR
 	STS		DHOR, CONTADOR
+
 	//Encender bandera que incrementa DIAS
 	LDI		R16, 0x01									//LDI	R16, (1<<OVFD)
 	EOR		FLAGS_MP, R16								
@@ -486,7 +498,7 @@ RETORN1:
 /***************Logica para ovf de modo fecha***************/
 LOGICF:
 	//Resetear la bandera CLK
-	LDI		R16, 0x20									//LDI	R16, (1<<CLK)
+	LDI		R16, 0x01									//LDI	R16, (1<<OVFD)
 	EOR		FLAGS_MP, R16
 
 	//Ver que la logica a usar dependende si estamos antes de agosto o despues
@@ -496,7 +508,7 @@ LOGICF:
 LOVF2:
 	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 0
 	Los de 30 terminan en 1*/
-	LDI		R25, 31										//Se cambia la l?gica
+	LDI		R25, 31										//Se cambia la lógica
 	LDI		R26, 32
 LOVF1:
 	//De enero (0x01) a Julio (0x07) los meses de 31 dias terminan en 1
@@ -513,7 +525,7 @@ LOVF1:
 INCREMENTAR_FECHA:										
 	INC		DIAS										//Incrementar dias
 	CP		DIAS, LIMIT_OVF								//Comparar con el limite para el ovf
-	BREQ	RESET_UD									//Si es distinto al limite saltar
+	BREQ	RESET_UD										//Si es distinto al limite saltar
 
 
 INC_UD:
@@ -522,11 +534,13 @@ INC_UD:
 	INC		R16											//Incrementar las unidades de dias
 	STS		UDIAS, R16
 	CPI		R16, 10										//Si es distinto a 10 saltar
-	BRNE	RETORNF										
+	BRNE	RETORNF		
+									
 	//Se ejecuta unicamente cuando hay OVF en unidades de dias
 	//Reiniciar las unidades e incrementar las decenas
 	LDI		R16, 0x00									//Reiniciar contador de unidades dias
 	STS		UDIAS, R16									//Guardar el contador de unidades dias
+
 	//Incrementar decenas de dias
 	LDS		R16, DDIAS
 	INC		R16									
@@ -545,17 +559,20 @@ RESET_UD:
 	LDS		R16, DMES
 	CPI		R16, 1										//Si es igual a 1
 	BRNE	OVFUM										// No salta
+
 	//Incrementar unidades de mes cuando decenas es 1
 	LDS		R16, UMES
 	INC		R16
 	STS		UMES, R16
 	CPI		R16, 3										//El overflow ocurre en 2
 	BRNE	RETORNF
-	//Aca pasaron todos lo meses del a?o.
+
+	//Aca pasaron todos lo meses del año.
 	//Resetear unidades y decenas de mes
 	LDI		R16, 0x00
 	STS		UMES, R16
 	STS		DMES, R16
+
 	//Se reestablece la logica a la inicial
 	LDI		R25, 32
 	LDI		R26, 31	
@@ -566,6 +583,7 @@ OVFUM:
 	STS		UMES, R16
 	CPI		R16, 10
 	BRNE	RETORNF										//Mientras no se igual a 10 salta
+	
 	//Resetear unidades y aumentar decenas de mes
 	LDI		R16, 0x00
 	STS		UMES, R16
