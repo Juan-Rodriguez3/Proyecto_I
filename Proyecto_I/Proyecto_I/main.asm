@@ -19,9 +19,9 @@
 .def	FLAGS_MP=R22						//Bandera Multiproposito
 .def	LIMIT_OVF=R23						//Contador de dias y meses
 .def	DIAS=R24							//Contador de dias y meses
-.equ	T1VALUE= 65530						//Valor inicial para la interrupción de 1 seg
-.equ	T0VALUE=100							//Valor para interrupción de 10 ms
-.equ	T2VALUE=224							//Valor para interrupción de 2 ms
+.equ	T1VALUE= 65530						//Valor inicial para la interrupci?n de 1 seg
+.equ	T0VALUE=100							//Valor para interrupci?n de 10 ms
+.equ	T2VALUE=224							//Valor para interrupci?n de 2 ms
 .dseg
 
 .org	SRAM_START
@@ -64,23 +64,23 @@ SETUP:
 	LDI R16, 0b00000100
 	STS CLKPR, R16									// Configurar Prescaler a 16 F_cpu = 1MHz
 
-	//Configuración de TIMER2 
+	//Configuraci?n de TIMER2 
 	LDI		R16, T2VALUE
     STS     TCNT2, R16								//Cargar el valor inicial para interupcion cada 2ms
     LDI     R16, (1 << CS21) | (1 << CS20)			//Prescaler de 64
     STS     TCCR2B, R16
 	
-	//Configuración de TIMER0
+	//Configuraci?n de TIMER0
 	LDI		R16, (1<<CS01) | (1<<CS00)				//Prescaler a 64
 	OUT		TCCR0B, R16
 	
-	//Configuración de TIMER1
+	//Configuraci?n de TIMER1
 	LDI		R16,  0x05								//Prescaler a 1024
 	STS		TCCR1B, R16
 	LDI		R16, (1 << TOIE1)						//Activar interrupciones timer1
 	STS		TIMSK1, R16
 
-	//Cargar el valor inicial al timer1 para interrupción cada segundo
+	//Cargar el valor inicial al timer1 para interrupci?n cada segundo
 	LDI		R16, HIGH(T1VALUE)
 	STS		TCNT1H, R16	
 	LDI		R16, LOW(T1VALUE)
@@ -241,7 +241,7 @@ OFFAA:
 													
 /*************Modos**************/					
 													
-/*************Configuración TIMER1**********/		
+/*************Configuraci?n TIMER1**********/		
 ISR_TIMER1:																			
 	PUSH	R16										
 	IN		R16, SREG								
@@ -261,9 +261,9 @@ ISR_TIMER1:
 	OUT		SREG, R16
 	POP		R16
 	RETI		
-/***************Configuración TIMER1************/
+/***************Configuraci?n TIMER1************/
 
-/***************Configuración TIMER0************/
+/***************Configuraci?n TIMER0************/
 
 ISR_TIMER0:
 	PUSH	R16 
@@ -300,7 +300,7 @@ RETORN0:
 	OUT		SREG, R16
 	POP		R16
 	RETI
-//*************Configuración TIMER1**********
+//*************Configuraci?n TIMER1**********
 
 //********Rutinas de interrupcion del pin C*******
 ISR_PCINT1:
@@ -364,8 +364,6 @@ MULTIPLEXF:
 	CBI		PORTB, 3
 	//Decenas de minutos
 	LDS		CONTADOR, DMES
-
-
 	CALL	MOV_POINTER2
 	SBI		PORTB, 2
 	CALL	DELAY
@@ -450,7 +448,17 @@ LOGICH:
 	LDS		CONTADOR, DHOR
 	CPI		CONTADOR, 2
 	BREQ	OVERF_2	
-
+	//Overflow de unidades de hora para decenas 0-1
+	LDS		CONTADOR, UHOR								//Se vuelve a cargar las unidades para comparar
+	CPI		CONTADOR, 10
+	BRNE	RETORN1
+	LDI		CONTADOR, 0x00								//reiniciar el contador de unidades
+	STS		UHOR, CONTADOR
+	//Incrementar el contador de decenas de horas
+	LDS		CONTADOR, DHOR
+	INC		CONTADOR
+	STS		DHOR, CONTADOR
+	RJMP	RETORN1
 //OVF de unidades para decenas de 2
 OVERF_2:
 	LDS		CONTADOR, UHOR								//se cargan las unidades para comparar
@@ -480,7 +488,7 @@ LOGICF:
 LOVF2:
 	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 0
 	Los de 30 terminan en 1*/
-	LDI		R25, 31										//Se cambia la lógica
+	LDI		R25, 31										//Se cambia la l?gica
 	LDI		R26, 32
 LOVF1:
 	//De enero (0x01) a Julio (0x07) los meses de 31 dias terminan en 1
@@ -497,7 +505,7 @@ LOVF1:
 INCREMENTAR_FECHA:										
 	INC		DIAS										//Incrementar dias
 	CP		DIAS, LIMIT_OVF								//Comparar con el limite para el ovf
-	BREQ	RESET_UD										//Si es distinto al limite saltar
+	BREQ	RESET_UD									//Si es distinto al limite saltar
 
 
 INC_UD:
@@ -535,7 +543,7 @@ RESET_UD:
 	STS		UMES, R16
 	CPI		R16, 3										//El overflow ocurre en 2
 	BRNE	RETORNF
-	//Aca pasaron todos lo meses del año.
+	//Aca pasaron todos lo meses del a?o.
 	//Resetear unidades y decenas de mes
 	LDI		R16, 0x00
 	STS		UMES, R16
