@@ -149,7 +149,32 @@ SETUP:
 	SEI												//Habilitar interrupciones globales
 	RJMP MAIN										
 													
+//Coloco este estado aca por el limite del	BREQ	
+OFFAA:
+	//Verificar los datos para el multiplexeo HORAS
+	LDI		R16, 0x40								//LDI	R16, (1<<HORA)
+	//Encender la bandera de HORA
+	SBRS	FLAGS_MP, 6
+	EOR		FLAGS_MP, R16
+
+	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
+	//Apagar la bandera de fecha
+	SBRC	FLAGS_MP, 7
+	EOR		FLAGS_MP, R16
 													
+	//Apagar todas las leds de estado				
+	SBI		PORTB, 4								
+	SBI		PORTC, 5		
+	
+	//Actualizar CLK							
+	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
+	CALL	LOGICH
+
+	//Actualizar fecha
+	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
+	CALL	LOGICF	
+							
+	RJMP	MAIN													
 													
 													
 /******************LOOP***********************/		
@@ -225,19 +250,64 @@ FECHA:
 	CALL	MULTIPLEX								
 	RJMP	MAIN									
 													
-CONFI_HORA:											
+CONFI_HORA:	
 	//encender la led de la hora (AZUL)				
 	CBI		PORTC, 4								
-	CBI		PORTC, 5								
+	CBI		PORTC, 5	
+
+	//Verificar los datos para el multiplexeo HORAS
+	LDI		R16, 0x40								//LDI	R16, (1<<HORA)
+	//Encender la bandera de HORA
+	SBRS	FLAGS_MP, 6
+	EOR		FLAGS_MP, R16
+
+	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
+	//Apagar la bandera de fecha
+	SBRC	FLAGS_MP, 7
+	EOR		FLAGS_MP, R16
+
+	//Unidades o decenas
+
+
+	//Incrementar o decrementar
+	SBRC	FLAGS_MP, 1								// Si Incrementar --> 1 incrementar
+	CALL	INCREMENTAR
+	SBRC	FLAGS_MP, 2								//Si Decrementar --> 1 decrementar
+	CALL	DECREMENTAR
+														
 	RJMP	MAIN									
 													
-CONFI_FECHA:										
+CONFI_FECHA:	
 	//Encender la led de la fecha (VERDE)			
 	SBI		PORTC, 4								
-	CBI		PORTC, 5								
+	CBI		PORTC, 5
+
+	//Verificar los datos para el multiplexeo FECHAS
+	LDI		R16, 0x40								//LDI	R16, (1<<HORA)
+	
+	//Apagar la bandera de HORA
+	SBRC	FLAGS_MP, 6
+	EOR		FLAGS_MP, R16
+	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
+	
+	//Encender la bandera de fecha
+	SBRS	FLAGS_MP, 7
+	EOR		FLAGS_MP, R16					
 	RJMP	MAIN									
 													
-CONFI_ALARMA:										
+CONFI_ALARMA:
+	//Verificar los datos para el multiplexeo HORAS
+	LDI		R16, 0x40								//LDI	R16, (1<<HORA)
+	
+	//Encender la bandera de HORA
+	SBRS	FLAGS_MP, 6
+	EOR		FLAGS_MP, R16
+	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
+	
+	//Apagar la bandera de fecha
+	SBRC	FLAGS_MP, 7
+	EOR		FLAGS_MP, R16								
+	
 	//Encender la led de alarma (ROJA)				
 	SBI		PORTC, 5								
 	CBI		PORTC, 4
@@ -251,21 +321,7 @@ CONFI_ALARMA:
 	CALL	LOGICF					
 				
 	RJMP	MAIN									
-													
-OFFAA:												
-	//Apagar todas las leds de estado				
-	SBI		PORTB, 4								
-	SBI		PORTC, 5		
-	
-	//Actualizar CLK							
-	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
-	CALL	LOGICH
-
-	//Actualizar fecha
-	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
-	CALL	LOGICF	
-							
-	RJMP	MAIN									
+																						
 													
 /*************Modos**************/					
 													
@@ -310,7 +366,7 @@ ISR_TIMER0:
 	LDI		R16, 0x02									//LDI	R16, (1<<Incrementar)
 	SBRS	SET_PB_N, 0									//Si presiono el boton 0, el bit 0 esta en LOW
 	EOR		FLAGS_MP, R16								//encender la bandera de incremento
-	LDI		R16, 0x04									//LDI	R16, (1<<decrementar)
+	LDI		R16, 0x04									//LDI	R16, (1<<Decrementar)
 	SBRS	SET_PB_N, 1									//Si presiono el boton 1, el bit 1 esta en LOW
 	EOR		FLAGS_MP, R16								//Encender la bandera de decremento
 	LDI		R16, 0x08									//LDI	R16, (1<<UNIDEC) 
@@ -599,6 +655,16 @@ OVFUM:
 RETORNF:
 	RET
 /***************Logica para ovf de modo fecha***************/
+
+/***************Logica para incrementar***************/
+INCREMENTAR:
+	RET
+
+DECREMENTAR:
+	RET
+
+/***************Logica para incrementar***************/
+
 
 //********Subrutinas**********
 
