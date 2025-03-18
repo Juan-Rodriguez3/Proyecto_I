@@ -171,16 +171,21 @@ MAIN:
 													
 													
 /********************Modos********************/		
-HORA:												
+HORA:
+	//Encender la bandera de 		
+										
 	//Apagar todas las leds de estado				
 	SBI		PORTC, 4								
 	SBI		PORTC, 5	
+
 	//Actualizar reloj							
 	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
 	CALL	LOGICH	
+
 	//Actualizar fecha
 	SBRC	FLAGS_MP, 0
 	CALL	LOGICF
+
 	//Multiplexeo								
 	CALL	MULTIPLEXH								
 	RJMP	MAIN									
@@ -192,14 +197,10 @@ FECHA:
 
 	//Actualizar CLK							
 	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
-	CALL	LOGICH
-	
-	CALL	MULTIPLEXF									
-	SBRS	FLAGS_MP, 0								//Si FLAG OVFD >> SET Realizar ovf							
-	RJMP	MAIN																					
-	//Limpiar la bandera							
-	LDI		R16, 0x01								
-	EOR		FLAGS_MP, R16							
+	CALL	LOGICH		
+
+	//Mostrar fecha						
+	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
 	CALL	LOGICF										
 	CALL	MULTIPLEXF								
 	RJMP	MAIN									
@@ -224,7 +225,11 @@ CONFI_ALARMA:
 	//Actualizar CLK							
 	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
 	CALL	LOGICH
-									
+	
+	//Actualizar fecha
+	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
+	CALL	LOGICF					
+				
 	RJMP	MAIN									
 													
 OFFAA:												
@@ -236,6 +241,9 @@ OFFAA:
 	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
 	CALL	LOGICH
 
+	//Actualizar fecha
+	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
+	CALL	LOGICF	
 							
 	RJMP	MAIN									
 													
