@@ -172,7 +172,16 @@ MAIN:
 													
 /********************Modos********************/		
 HORA:
-	//Encender la bandera de 		
+	//Verificar los datos para el multiplexeo HORAS
+	LDI		R16, 0x40								//LDI	R16, (1<<HORA)
+	//Encender la bandera de HORA
+	SBRS	FLAGS_MP, 6
+	EOR		FLAGS_MP, R16
+
+	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
+	//Apagar la bandera de fecha
+	SBRC	FLAGS_MP, 7
+	EOR		FLAGS_MP, R16						
 										
 	//Apagar todas las leds de estado				
 	SBI		PORTC, 4								
@@ -187,10 +196,21 @@ HORA:
 	CALL	LOGICF
 
 	//Multiplexeo								
-	CALL	MULTIPLEXH								
+	CALL	MULTIPLEX								
 	RJMP	MAIN									
 													
-FECHA:												
+FECHA:		
+	//Verificar los datos para el multiplexeo FECHAS
+	LDI		R16, 0x40								//LDI	R16, (1<<HORA)
+	//Apagar la bandera de HORA
+	SBRC	FLAGS_MP, 6
+	EOR		FLAGS_MP, R16
+
+	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
+	//Encender la bandera de fecha
+	SBRS	FLAGS_MP, 7
+	EOR		FLAGS_MP, R16
+											
 	//Apagar todas las leds de estado				
 	SBI		PORTC, 4								
 	SBI		PORTC, 5
@@ -202,7 +222,7 @@ FECHA:
 	//Mostrar fecha						
 	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
 	CALL	LOGICF										
-	CALL	MULTIPLEXF								
+	CALL	MULTIPLEX								
 	RJMP	MAIN									
 													
 CONFI_HORA:											
@@ -362,57 +382,43 @@ MOV_POINTER2:
 	RET
 /***************Mover los punteros***************/
 
-/***************Multiplexeo para horas***************/
-MULTIPLEXF:
-	//Unidades de minutos
+/***************Multiplexeo para fechas***************/
+MULTIPLEX:
+	//Unidades de minutos/MES
+	SBRC	FLAGS_MP, 6								// HORA --> 1 usar unidades de minuto
+	LDS		CONTADOR, UMIN
+	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar unidades mes
 	LDS		CONTADOR, UMES
 	CALL	MOV_POINTER
 	SBI		PORTB, 3
 	CALL	DELAY
 	CBI		PORTB, 3
-	//Decenas de minutos
+
+	//Decenas de minutos/MES
+	SBRC	FLAGS_MP, 6								// HORA --> 1 usar decenas de minuto
+	LDS		CONTADOR, DMIN
+	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar decenas mes
 	LDS		CONTADOR, DMES
 	CALL	MOV_POINTER2
 	SBI		PORTB, 2
 	CALL	DELAY
 	CBI		PORTB, 2
-	//Unidades de horas
+
+	//Unidades de horas/dias
+	SBRC	FLAGS_MP, 6								// HORA --> 1 usar unidades de horas
+	LDS		CONTADOR, UHOR
+	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar Unidades de dias
 	LDS		CONTADOR, UDIAS
 	CALL	MOV_POINTER
 	SBI		PORTB, 1
 	CALL	DELAY
 	CBI		PORTB, 1
-	//Decenas de horas
-	LDS		CONTADOR, DDIAS
-	CALL	MOV_POINTER
-	SBI		PORTB, 0
-	CALL	DELAY
-	CBI		PORTB, 0
-	RET
-/***************Multiplexeo para horas***************/
 
-/***************Multiplexeo para fechas***************/
-MULTIPLEXH:
-	//Unidades de minutos
-	LDS		CONTADOR, UMIN
-	CALL	MOV_POINTER
-	SBI		PORTB, 3
-	CALL	DELAY
-	CBI		PORTB, 3
-	//Decenas de minutos
-	LDS		CONTADOR, DMIN
-	CALL	MOV_POINTER2
-	SBI		PORTB, 2
-	CALL	DELAY
-	CBI		PORTB, 2
-	//Unidades de horas
-	LDS		CONTADOR, UHOR
-	CALL	MOV_POINTER
-	SBI		PORTB, 1
-	CALL	DELAY
-	CBI		PORTB, 1
-	//Decenas de horas
+	//Decenas de horas/dias
+	SBRC	FLAGS_MP, 6								// HORA --> 1 usar decenas de hpras
 	LDS		CONTADOR, DHOR
+	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar decenas dias
+	LDS		CONTADOR, DDIAS
 	CALL	MOV_POINTER
 	SBI		PORTB, 0
 	CALL	DELAY
