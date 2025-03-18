@@ -19,7 +19,7 @@
 .def	FLAGS_MP=R22						//Bandera Multiproposito
 .def	LIMIT_OVF=R23						//Contador de dias y meses
 .def	DIAS=R24							//Contador de dias y meses
-.equ	T1VALUE= 65530						//Valor inicial para la interrupci?n de 1 seg
+.equ	T1VALUE= 64558						//Valor inicial para la interrupci?n de 1 seg
 .equ	T0VALUE=100							//Valor para interrupci?n de 10 ms
 .equ	T2VALUE=224							//Valor para interrupci?n de 2 ms
 .dseg
@@ -64,17 +64,17 @@ SETUP:
 	LDI R16, 0b00000100
 	STS CLKPR, R16									// Configurar Prescaler a 16 F_cpu = 1MHz
 
-	//Configuraci?n de TIMER2 
+	//Configuracion de TIMER2 
 	LDI		R16, T2VALUE
     STS     TCNT2, R16								//Cargar el valor inicial para interupcion cada 2ms
     LDI     R16, (1 << CS21) | (1 << CS20)			//Prescaler de 64
     STS     TCCR2B, R16
 	
-	//Configuraci?n de TIMER0
+	//Configuracion de TIMER0
 	LDI		R16, (1<<CS01) | (1<<CS00)				//Prescaler a 64
 	OUT		TCCR0B, R16
 	
-	//Configuraci?n de TIMER1
+	//Configuracion de TIMER1
 	LDI		R16,  0x05								//Prescaler a 1024
 	STS		TCCR1B, R16
 	LDI		R16, (1 << TOIE1)						//Activar interrupciones timer1
@@ -149,7 +149,8 @@ SETUP:
 	SEI												//Habilitar interrupciones globales
 	RJMP MAIN										
 													
-//Coloco este estado aca por el limite del	BREQ	
+//Coloco este estado aca por el limite del	BREQ
+/********************Modos********************/	
 OFFAA:
 	//Verificar los datos para el multiplexeo HORAS
 	LDI		R16, 0x40								//LDI	R16, (1<<HORA)
@@ -175,7 +176,34 @@ OFFAA:
 	CALL	LOGICF	
 							
 	RJMP	MAIN													
-													
+
+CONFI_ALARMA:
+	//Verificar los datos para el multiplexeo HORAS
+	LDI		R16, 0x40								//LDI	R16, (1<<HORA)
+	
+	//Encender la bandera de HORA
+	SBRS	FLAGS_MP, 6
+	EOR		FLAGS_MP, R16
+	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
+	
+	//Apagar la bandera de fecha
+	SBRC	FLAGS_MP, 7
+	EOR		FLAGS_MP, R16								
+	
+	//Encender la led de alarma (ROJA)				
+	SBI		PORTC, 5								
+	CBI		PORTC, 4
+	
+	//Actualizar CLK							
+	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
+	CALL	LOGICH
+	
+	//Actualizar fecha
+	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
+	CALL	LOGICF					
+				
+	RJMP	MAIN												
+/********************Modos********************/
 													
 /******************LOOP***********************/		
 MAIN:												
@@ -274,7 +302,7 @@ CONFI_HORA:
 	CALL	INCREMENTAR
 	SBRC	FLAGS_MP, 2								//Si Decrementar --> 1 decrementar
 	CALL	DECREMENTAR
-														
+	CALL	MULTIPLEX											
 	RJMP	MAIN									
 													
 CONFI_FECHA:	
@@ -284,44 +312,22 @@ CONFI_FECHA:
 
 	//Verificar los datos para el multiplexeo FECHAS
 	LDI		R16, 0x40								//LDI	R16, (1<<HORA)
-	
 	//Apagar la bandera de HORA
 	SBRC	FLAGS_MP, 6
 	EOR		FLAGS_MP, R16
-	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
 	
+	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
 	//Encender la bandera de fecha
 	SBRS	FLAGS_MP, 7
-	EOR		FLAGS_MP, R16					
-	RJMP	MAIN									
-													
-CONFI_ALARMA:
-	//Verificar los datos para el multiplexeo HORAS
-	LDI		R16, 0x40								//LDI	R16, (1<<HORA)
-	
-	//Encender la bandera de HORA
-	SBRS	FLAGS_MP, 6
 	EOR		FLAGS_MP, R16
-	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
 	
-	//Apagar la bandera de fecha
-	SBRC	FLAGS_MP, 7
-	EOR		FLAGS_MP, R16								
-	
-	//Encender la led de alarma (ROJA)				
-	SBI		PORTC, 5								
-	CBI		PORTC, 4
-	
-	//Actualizar CLK							
-	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
-	CALL	LOGICH
-	
-	//Actualizar fecha
-	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
-	CALL	LOGICF					
-				
-	RJMP	MAIN									
-																						
+	//Incrementar o decrementar
+	SBRC	FLAGS_MP, 1								// Si Incrementar --> 1 incrementar
+	CALL	INCREMENTAR
+	SBRC	FLAGS_MP, 2								//Si Decrementar --> 1 decrementar
+	CALL	DECREMENTAR
+	CALL	MULTIPLEX						
+	RJMP	MAIN																	
 													
 /*************Modos**************/					
 													
@@ -656,15 +662,157 @@ RETORNF:
 	RET
 /***************Logica para ovf de modo fecha***************/
 
-/***************Logica para incrementar***************/
-INCREMENTAR:
+/***************Logica para incrementar configuración***************/
+INCREMENTAR: 
+	//Limpiar la bandera de incremento
+	LDI		R16, 0x02									//LDI	R16, (1<<Incrementar)
+	EOR		FLAGS_MP, R16
+
+	SBRC	FLAGS_MP, 3									//UNIDEC ---> 1
+	LDI		R16, 0x01									//Trabajar con minutos/mes
+	SBRS	FLAGS_MP, 3									//UNIDEC --> 0
+	LDI		R16, 0x00									//Trabajar con horas/dias
+	CPI		R16, 0x00
+	BRNE	MINMES										//Si es diferente salta a MINMES
+	
+	//Trabajar horas y dias
+	SBRC	FLAGS_MP, 6									//Si HORA --> 1 se trabajan con horas
+	CALL	INCHOUR
+	SBRC	FLAGS_MP, 7									//Si Fecha -->1 se trabaja con dias
+	CALL	INCDAYS
+	RET
+MINMES:
+	//Trabajar con minutos/mes
+	//Trabajar minitos y mese
+	SBRC	FLAGS_MP, 6									//Si HORA --> 1 se trabajan con min
+	CALL	INCMINS
+	SBRC	FLAGS_MP, 7									//Si Fecha -->1 se trabaja con meses
+	CALL	INCMES
 	RET
 
-DECREMENTAR:
+/**Logica para incrementar horas/mins**/
+INCHOUR:
+	LDI		R16, 10										//Limite es 10
+	LDS		CONTADOR, DHOR
+	//DE 1/0 OVFUD hasta 10 y cuando es 2 OVFUD hasta 4
+	CPI		CONTADOR, 2
+	BRNE	INCUHOUR
+	LDI		R16, 4										//limite es 4
+INCUHOUR:
+	//Incrementar unidades
+	LDS		CONTADOR, UHOR
+	INC		CONTADOR
+	STS		UHOR, CONTADOR 
+	CP		CONTADOR, R16								//ovf de unidades de horas
+	BRNE	R_INCH
+	//Reiniciar las unidades
+	LDI		CONTADOR, 0x00			
+	STS		UHOR, CONTADOR
+	//Incrementar decenas
+	LDS		CONTADOR, DHOR
+	INC		CONTADOR
+	STS		DHOR, CONTADOR
+	CPI		CONTADOR, 3
+	BRNE	R_INCH
+	//Reiniciar el contador de decenas
+	LDI		CONTADOR, 0x00
+	STS		DHOR, CONTADOR
+R_INCH:
+	RET
+
+//logica para incrementar minutos
+INCMINS:
+	LDS		CONTADOR, UMIN									//Incrementar unidades
+	INC		CONTADOR
+	STS		UMIN, CONTADOR
+	CPI		CONTADOR, 10
+	BRNE	R_INCM
+	LDI		CONTADOR, 0x00									//Reinicar unidades
+	STS		UMIN, CONTADOR
+	LDS		CONTADOR, DMIN									//Incrementar decenas
+	INC		CONTADOR
+	STS		DMIN, CONTADOR
+	CPI		CONTADOR, 6
+	BRNE	R_INCM
+	LDI		CONTADOR, 0x00									//Reiniciar decenas
+	STS		DMIN, CONTADOR
+R_INCM:
+	RET
+/**Logica para incrementar horas/mins**/
+
+/**Logica para incrementar meses/dias**/
+INCDAYS:
+	//Ver que la logica a usar dependende si estamos antes de agosto o despues
+	LDS		R16, UMES
+	CPI		R16, 8										//Si es igual a 7 ir LOVF2
+	BRNE	L0VF1										//mientra no sea igual a 7 ir LOVF1
+L0VF2:
+	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 0
+	Los de 30 terminan en 1*/
+	LDI		R25, 31										//Se cambia la lógica
+	LDI		R26, 32
+L0VF1:
+	//De enero (0x01) a Julio (0x07) los meses de 31 dias terminan en 1
+	//Los de 30 terminan en 0 excepto febrero.
+	SBRC	R16, 0										//Revisar si el mes termina en 0 o en 1
+	MOV		LIMIT_OVF, R25								// 31
+	SBRS	R16, 0
+	MOV		LIMIT_OVF, R26								// 30
+	CPI		R16, 2										//Mientras no sea febrero usar 30 o 31 como limite
+	BRNE	INCUDAYS
+	LDI		LIMIT_OVF, 29
+INCUDAYS:
+	INC		DIAS
+	CP		DIAS, LIMIT_OVF
+	BREQ	RUD											//Ir a reiniciar contador de dias
+	LDS		CONTADOR, UDIAS
+	INC		CONTADOR									//Incrementar unidades de dias
+	STS		UDIAS, CONTADOR
+	CPI		CONTADOR, 10
+	BRNE	R_INCD
+	LDI		CONTADOR, 0x00								//Reiniciar unidades de dias
+	STS		UDIAS, CONTADOR
+	LDS		CONTADOR, DDIAS								//Incrementar decenas de dias
+	INC		CONTADOR
+	STS		DDIAS, CONTADOR	
+	RJMP	R_INCD
+RUD:
+	LDI		DIAS, 0x00
+	STS		DDIAS, DIAS
+	LDI		DIAS, 0x01
+	STS		UDIAS, DIAS
+R_INCD:
+	RET
+
+INCMES:
+	LDS		CONTADOR, DMES
+	CPI		CONTADOR, 0x00
+	BRNE	INCDM
+	LDS		CONTADOR, UMES								//Incrementar unidades 
+	INC		CONTADOR
+	STS		UMES, CONTADOR
+	CPI		CONTADOR, 10
+	BRNE	R_INCM
+	LDI		CONTADOR, 0x00								//Reinciar las unidades
+	STS		UMES, CONTADOR
+	LDS		CONTADOR, DMES								//Incrementar las decenas
+	INC		CONTADOR
+	STS		DMES, CONTADOR	
+	RJMP	R_INCM
+INCDM:
+	LDS		CONTADOR, UMES								//Incrementar unidades 
+	INC		CONTADOR
+	STS		UMES, CONTADOR
+	CPI		CONTADOR,	3								//Ahora el overflow se hace en 2
+	BRNE	R_INCME
+	LDI		CONTADOR, 0x01								//Resetear unidades
+	STS		UMES, CONTADOR
+	LDI		CONTADOR, 0x00								//Reinciar las decenas
+	STS		DMES, CONTADOR
+R_INCME:
 	RET
 
 /***************Logica para incrementar***************/
-
 
 //********Subrutinas**********
 
