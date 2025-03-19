@@ -879,29 +879,59 @@ R_DH:
 DECMINS:
 	LDS		CONTADOR, UMIN
 	CPI		CONTADOR, 0
-	BREQ	UNDFUM
+	BREQ	UNDFUMI
 	DEC		CONTADOR									//Decrementar unidades de minutO
 	STS		UMIN, CONTADOR
 	RET
-UNDFUM:
+UNDFUMI:
 	LDI		CONTADOR, 9									//Reiniciar en 9 las unidades de minito
 	STS		UMIN, CONTADOR
 	LDS		CONTADOR, DMIN
 	CPI		CONTADOR, 0	
-	BREQ	UNDFDM			
+	BREQ	UNDFDMI			
 	DEC		CONTADOR									//Decrementar horas de minuto
 	STS		DMIN, CONTADOR
 	RET
-UNDFDM:
+UNDFDMI:
 	LDI		CONTADOR, 5									//Reiniciar las decenas de minuto a 5
 	STS		DMIN, CONTADOR
+	RET
+
+DECMES:
+	LDS		CONTADOR, DMES
+	CPI		CONTADOR, 0
+	BRNE	UNDFUME
+	LDS		CONTADOR, UMES								//Underflow de unidades de mes 					
+	CPI		CONTADOR, 1
+	BREQ	UNDFDME
+	DEC		CONTADOR									//Decrementar unidades de mes
+	STS		UMES, CONTADOR	
+	RET
+UNDFDME:
+	LDI		CONTADOR, 2
+	STS		UMES, CONTADOR
+	LDI		CONTADOR, 1
+	STS		DMES, CONTADOR
+	RET													
+UNDFUME:
+	LDS		CONTADOR, UMES								//Underflow de unidades de mes 					
+	CPI		CONTADOR, 0
+	BREQ	UNDFDME2
+	DEC		CONTADOR									//Decrementar unidades de mes
+	STS		UMES, CONTADOR
+	RET
+UNDFDME2:
+	LDI		CONTADOR, 9									//Resetear unidades a 0
+	STS		UMES, CONTADOR
+	LDS		CONTADOR, DMES								//Decrementar decenas de mes
+	DEC		CONTADOR
+	STS		DMES, CONTADOR
 	RET
 
 DECDAYS:
 	RET
 
-DECMES:
-	RET
+
 
 //********Subrutinas**********
 
