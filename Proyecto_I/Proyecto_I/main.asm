@@ -861,8 +861,7 @@ UNDFUH:
 	//Decrementar unidades de hora
 	LDS		CONTADOR, UHOR
 	CPI		CONTADOR, 0									//El underflow lo hara a 9 si llega a cero
-	BRNE	UNDFUDH
-
+	BREQ	UNDFUDH
 	//Decrementar las unidades horas
 	DEC		CONTADOR
 	STS		UHOR, CONTADOR
