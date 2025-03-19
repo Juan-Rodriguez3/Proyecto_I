@@ -669,9 +669,9 @@ INCREMENTAR:
 	EOR		FLAGS_MP, R16
 
 	SBRC	FLAGS_MP, 3									//UNIDEC ---> 1
-	LDI		R16, 0x01									//Trabajar con minutos/mes
+	LDI		R16, 0x00									//Trabajar con minutos/mes
 	SBRS	FLAGS_MP, 3									//UNIDEC --> 0
-	LDI		R16, 0x00									//Trabajar con horas/dias
+	LDI		R16, 0x01									//Trabajar con horas/dias
 	CPI		R16, 0x00
 	BRNE	MINMES										//Si es diferente salta a MINMES
 	
@@ -813,6 +813,78 @@ R_INCME:
 	RET
 
 /***************Logica para incrementar***************/
+
+DECREMENTAR:
+	//Limpiar la bandera de incremento
+	LDI		R16, 0x04									//LDI	R16, (1<<Decrementar)
+	EOR		FLAGS_MP, R16
+
+	//Configurar las de horas/dias - minutos/mes
+	SBRC	FLAGS_MP, 3									//UNIDEC ---> 1
+	LDI		R16, 0x00									//Trabajar con minutos/mes
+	SBRS	FLAGS_MP, 3									//UNIDEC --> 0
+	LDI		R16, 0x01									//Trabajar con horas/dias
+	CPI		R16, 0x00
+	BRNE	MINMESD										//Si es diferente salta a MINMES
+	
+	//Trabajar horas y dias
+	SBRC	FLAGS_MP, 6									//Si HORA --> 1 se trabajan con horas
+	CALL	DECHOUR
+	SBRC	FLAGS_MP, 7									//Si Fecha -->1 se trabaja con dias
+	CALL	DECDAYS
+	RET
+MINMESD:
+	//Trabajar con minutos/mes
+	SBRC	FLAGS_MP, 6									//Si HORA --> 1 se trabajan con min
+	CALL	DECMINS
+	SBRC	FLAGS_MP, 7									//Si Fecha -->1 se trabaja con meses
+	CALL	DECMES
+	RET
+
+//Subrutinas de decremento
+DECHOUR:
+	LDS		CONTADOR, DHOR								//Comparar si las decenas son 0
+	CPI		CONTADOR, 0
+	BRNE	UNDFUH										//Mientras se diferente a 0 el undf de la unidades es en 9
+	
+	//Decrementar unidades de hora
+	LDS		CONTADOR, UHOR
+	CPI		CONTADOR, 0									//El underflow lo hara a 4 si llega a cero
+	BRNE	UNDFUH
+	//UNDERFLOW DE DIA
+	LDI		CONTADOR, 4
+	STS		UHOR, CONTADOR
+	LDI		CONTADOR, 2
+	STS		DHOR, CONTADOR
+	RET
+UNDFUH:
+	//Decrementar unidades de hora
+	LDS		CONTADOR, UHOR
+	CPI		CONTADOR, 0									//El underflow lo hara a 9 si llega a cero
+	BRNE	UNDFUDH
+
+	//Decrementar las unidades horas
+	DEC		CONTADOR
+	STS		UHOR, CONTADOR
+	RET
+UNDFUDH:
+	LDI		CONTADOR, 9
+	STS		UHOR, CONTADOR
+	//Decrementar decenas de horas
+	LDS		CONTADOR, DHOR
+	DEC		CONTADOR
+	STS		DHOR, CONTADOR	
+R_DH:
+	RET
+
+DECMINS:
+	RET
+
+DECDAYS:
+	RET
+
+DECMES:
+	RET
 
 //********Subrutinas**********
 
