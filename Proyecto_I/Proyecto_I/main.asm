@@ -121,7 +121,7 @@ SETUP:
 	LDI		FLAGS_MP, 0x00							//Bandera para los puntos
 	LDI		FLAG_STATE, 0x00						//Por default inicia en el modo hora.
 	LDI		LIMIT_OVF, 0x00							//Comparar los dias con este registro
-	LDI		DIAS, 0x00
+	LDI		DIAS, 0x01
 	LDI		R25, 32									//OVF de mes para meses que terminan 1
 	LDI		R26, 31									//OVF de mes para meses que terminan 0
 	//HORA

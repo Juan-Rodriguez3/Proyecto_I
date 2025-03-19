@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Wed Mar 19 01:04:16 2025
+AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Wed Mar 19 01:05:24 2025
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm(13): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\M328PDEF.inc'
@@ -1152,7 +1152,7 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
 000058 e060                      	LDI		FLAGS_MP, 0x00							//Bandera para los puntos
 000059 e040                      	LDI		FLAG_STATE, 0x00						//Por default inicia en el modo hora.
 00005a e070                      	LDI		LIMIT_OVF, 0x00							//Comparar los dias con este registro
-00005b e080                      	LDI		DIAS, 0x00
+00005b e081                      	LDI		DIAS, 0x01
 00005c e290                      	LDI		R25, 32									//OVF de mes para meses que terminan 1
 00005d e1af                      	LDI		R26, 31									//OVF de mes para meses que terminan 0
                                  	//HORA
