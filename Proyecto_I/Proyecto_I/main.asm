@@ -73,6 +73,11 @@ SETUP:
 	//Configuracion de TIMER0
 	LDI		R16, (1<<CS01) | (1<<CS00)				//Prescaler a 64
 	OUT		TCCR0B, R16
+	//Activar las interrupciones del timer0
+	LDI		R16, (1<<TOIE0)
+	STS		TIMSK0, R16									//Activar las interrupciones del timer0
+	LDI		R16, T0VALUE
+	OUT		TCNT0, R16									//establecer el valor inicial a TCNT0 para interrumpir cada 10ms
 	
 	//Configuracion de TIMER1
 	LDI		R16,  0x05								//Prescaler a 1024
@@ -357,31 +362,9 @@ ISR_TIMER0:
 	PUSH	R16 
 	IN		R16, SREG
 	PUSH	R16
-	LDI		R16, 0x00
-	STS		TIMSK0, R16									//Deshabilitar las interrupciones del timer0
 
 	//Progra de antirevote
 	IN		SET_PB_N, PINC								//Releer el pinc
-	CP		SET_PB_N, SET_PB_A
-	BREQ	RETORN0
-	MOV		SET_PB_A,SET_PB_N							//Actualizar el estado de los botones
-	//Revisar que boton se presiono
-	//Botones de configuracion.
-	LDI		R16, 0x02									//LDI	R16, (1<<Incrementar)
-	SBRS	SET_PB_N, 0									//Si presiono el boton 0, el bit 0 esta en LOW
-	EOR		FLAGS_MP, R16								//encender la bandera de incremento
-	LDI		R16, 0x04									//LDI	R16, (1<<Decrementar)
-	SBRS	SET_PB_N, 1									//Si presiono el boton 1, el bit 1 esta en LOW
-	EOR		FLAGS_MP, R16								//Encender la bandera de decremento
-	LDI		R16, 0x08									//LDI	R16, (1<<UNIDEC) 
-	SBRS	SET_PB_N, 2									//Si presiono el boton 2, el bit 2 esta en LOW
-	EOR		FLAGS_MP, R16									//Encender la bandera de uni
-	//Boton de cambio de modo
-	SBRS	SET_PB_N, 3
-	INC		FLAG_STATE
-	CPI		FLAG_STATE,0x06
-	BRNE	RETORN0
-	LDI		FLAG_STATE, 0x00
 
 RETORN0:
 	POP		R16
@@ -400,11 +383,24 @@ ISR_PCINT1:
 	IN		SET_PB_N, PINC								//Leer el puerto C
 	CP		SET_PB_N, SET_PB_A				
 	BREQ	RETORNO	
-	//Activar las interrupciones del timer0
-	LDI		R16, (1<<TOIE0)
-	STS		TIMSK0, R16									//Activar las interrupciones del timer0
-	LDI		R16, T0VALUE
-	OUT		TCNT0, R16									//establecer el valor inicial a TCNT0 para interrumpir cada 10ms
+	//Revisar que boton se presiono
+	MOV		SET_PB_A, SET_PB_N
+	//Botones de configuracion.
+	LDI		R16, 0x02									//LDI	R16, (1<<Incrementar)
+	SBRS	SET_PB_N, 0									//Si presiono el boton 0, el bit 0 esta en LOW
+	EOR		FLAGS_MP, R16								//encender la bandera de incremento
+	LDI		R16, 0x04									//LDI	R16, (1<<Decrementar)
+	SBRS	SET_PB_N, 1									//Si presiono el boton 1, el bit 1 esta en LOW
+	EOR		FLAGS_MP, R16								//Encender la bandera de decremento
+	LDI		R16, 0x08									//LDI	R16, (1<<UNIDEC) 
+	SBRS	SET_PB_N, 2									//Si presiono el boton 2, el bit 2 esta en LOW
+	EOR		FLAGS_MP, R16									//Encender la bandera de uni
+	//Boton de cambio de modo
+	SBRS	SET_PB_N, 3
+	INC		FLAG_STATE
+	CPI		FLAG_STATE,0x06
+	BRNE	RETORN0
+	LDI		FLAG_STATE, 0x00
 RETORNO:
 	POP		R16
 	OUT		SREG, R16
