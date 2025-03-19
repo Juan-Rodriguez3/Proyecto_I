@@ -955,8 +955,7 @@ SALTO:
 	SBRC	LIMIT_OVF, 5	
 	LDI		DIAS, 31								
 	SBRS	LIMIT_OVF, 5
-	LDI		DIAS, 30	
-						
+	LDI		DIAS, 30		
 	CPI		LIMIT_OVF, 29								//Mientras estemos en febrero se cambiara la lógica
 	BRNE	UNDFDD
 	LDI		DIAS, 28
