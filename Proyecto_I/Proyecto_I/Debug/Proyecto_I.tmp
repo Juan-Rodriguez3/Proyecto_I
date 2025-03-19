@@ -35,7 +35,7 @@
   <ISR_PCINT1><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>396</LINE></ISR_PCINT1>
   <ISR_TIMER1><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>335</LINE></ISR_TIMER1>
   <ISR_TIMER0><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>358</LINE></ISR_TIMER0>
-  <TABLA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>939</LINE></TABLA>
+  <TABLA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>993</LINE></TABLA>
   <MAIN><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>209</LINE></MAIN>
   <OFFAA><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>154</LINE></OFFAA>
   <LOGICH><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>492</LINE></LOGICH>
@@ -53,7 +53,7 @@
   <DELAY><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>418</LINE></DELAY>
   <MOV_POINTER><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>428</LINE></MOV_POINTER>
   <MOV_POINTER2><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>437</LINE></MOV_POINTER2>
-  <TABLA2><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>942</LINE></TABLA2>
+  <TABLA2><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>996</LINE></TABLA2>
   <RETORN1><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>562</LINE></RETORN1>
   <OVERF_2><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>549</LINE></OVERF_2>
   <LOVF1><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>581</LINE></LOVF1>
@@ -91,5 +91,11 @@
   <UNDFUME><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>916</LINE></UNDFUME>
   <UNDFDME><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>910</LINE></UNDFDME>
   <UNDFDME2><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>923</LINE></UNDFDME2>
+  <LUNDF1><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>941</LINE></LUNDF1>
+  <LUNDF2><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>936</LINE></LUNDF2>
+  <SALTO><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>951</LINE></SALTO>
+  <DECUD><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>972</LINE></DECUD>
+  <UNDFDD><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>963</LINE></UNDFDD>
+  <UNDFUD><FILE>C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm</FILE><LINE>980</LINE></UNDFUD>
  </LABELS>
 </ASSEMBLER_INFO>

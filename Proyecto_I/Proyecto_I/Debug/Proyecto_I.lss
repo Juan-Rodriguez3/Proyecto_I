@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Wed Mar 19 00:07:13 2025
+AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Wed Mar 19 00:50:29 2025
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm(13): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\M328PDEF.inc'
@@ -1172,8 +1172,8 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  													
                                  													
                                  	//Usar el puntero Z como salida de display		
-000073 e0f5                      	LDI		ZH, HIGH(TABLA<<1)						//Carga la parte alta de la direcci?n de tabla en el registro ZH
-000074 edea                      	LDI		ZL, LOW(TABLA<<1)						//Carga la parte baja de la direcci?n de la tabla en el registro ZL
+000073 e0f6                      	LDI		ZH, HIGH(TABLA<<1)						//Carga la parte alta de la direcci?n de tabla en el registro ZH
+000074 e4e2                      	LDI		ZL, LOW(TABLA<<1)						//Carga la parte baja de la direcci?n de la tabla en el registro ZL
 000075 9134                      	LPM		DISPLAY, Z								//Carga en R18 el valor de la tabla en ela dirrecion Z
 000076 b93b                      	OUT		PORTD, DISPLAY							//Muestra en el puerto D el valor leido de la tabla
                                  													
@@ -1457,8 +1457,8 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  
                                  /***************Mover los punteros***************/
                                  MOV_POINTER:
-00012a e0f5                      	LDI		ZH, HIGH(TABLA<<1)				
-00012b edea                      	LDI		ZL, LOW(TABLA<<1)
+00012a e0f6                      	LDI		ZH, HIGH(TABLA<<1)				
+00012b e4e2                      	LDI		ZL, LOW(TABLA<<1)
 00012c 0fe5                      	ADD		ZL, CONTADOR								//Se incrementa la parte baja
 00012d 1df1                      	ADC		ZH, R1										//Se suma 0 y el carro de la parte baja	
 00012e 9134                      	LPM		DISPLAY, Z
@@ -1466,8 +1466,8 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
 000130 9508                      	RET
                                  
                                  MOV_POINTER2:
-000131 e0f5                      	LDI		ZH, HIGH(TABLA2<<1)				
-000132 eee4                      	LDI		ZL, LOW(TABLA2<<1)
+000131 e0f6                      	LDI		ZH, HIGH(TABLA2<<1)				
+000132 e4ec                      	LDI		ZL, LOW(TABLA2<<1)
 000133 0fe5                      	ADD		ZL, CONTADOR								//Se incrementa la parte baja
 000134 1df1                      	ADC		ZH, R1										//Se suma 0 y el carro de la parte baja	
 000135 9134                      	LPM		DISPLAY, Z
@@ -1960,7 +1960,61 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
 0002eb 9508                      	RET
                                  
                                  DECDAYS:
-0002ec 9508                      	RET
+                                 	//Ver que la logica a usar dependende si estamos antes de agosto o despues
+0002ec 9100 0106                 	LDS		R16, UMES
+0002ee 3008                      	CPI		R16, 8										//Si es igual a 7 ir LOVF2
+0002ef f411                      	BRNE	LUNDF1										//mientra no sea igual a 7 ir LOVF1
+                                 LUNDF2:
+                                 	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 0
+                                 	Los de 30 terminan en 1*/
+0002f0 e19f                      	LDI		R25, 31										//Se cambia la lógica
+0002f1 e2a0                      	LDI		R26, 32
+                                 LUNDF1:
+                                 	//De enero (0x01) a Julio (0x07) los meses de 31 dias terminan en 1
+                                 	//Los de 30 terminan en 0 excepto febrero.
+0002f2 fd00                      	SBRC	R16, 0										//Revisar si el mes termina en 0 o en 1
+0002f3 2f79                      	MOV		LIMIT_OVF, R25								// 31
+0002f4 ff00                      	SBRS	R16, 0
+0002f5 2f7a                      	MOV		LIMIT_OVF, R26								// 30
+0002f6 3002                      	CPI		R16, 2										//Mientras no sea febrero usar 30 o 31 como limite
+0002f7 f409                      	BRNE	SALTO
+0002f8 e17d                      	LDI		LIMIT_OVF, 29
+                                 SALTO:
+0002f9 3081                      	CPI		DIAS, 1
+0002fa f4a1                      	BRNE	DECUD										//Decrementar Dias
+                                 	//Lógica de underflow de dias
+0002fb 2f87                      	MOV		DIAS, LIMIT_OVF								//Reiniciar los dias dependiendo del mes en el que estamos						
+0002fc 317d                      	CPI		LIMIT_OVF, 29								//Mientras estemos en febrero se cambiara la lógica
+0002fd f439                      	BRNE	UNDFDD
+0002fe e058                      	LDI		CONTADOR, 8									//Realizar el underflow especial para febrero.
+0002ff 9350 0104                 	STS		UDIAS, CONTADOR
+000301 e052                      	LDI		CONTADOR, 2
+000302 9350 0105                 	STS		DDIAS, CONTADOR
+000304 9508                      	RET 
+                                 UNDFDD:	
+000305 e053                      	LDI		CONTADOR, 3									//Las decenas siempre se resetean en 3
+000306 9350 0105                 	STS		DDIAS, CONTADOR
+000308 ff75                      	SBRS	LIMIT_OVF, 5								//Salta si Limit_ovf --> 0010 0000 = 32
+000309 e050                      	LDI		CONTADOR, 0								
+00030a fd75                      	SBRC	LIMIT_OVF, 5								//Salta si LIMIT_OVF --> 0001 1111 = 31
+00030b e051                      	LDI		CONTADOR, 1
+00030c 9350 0104                 	STS		UDIAS, CONTADOR
+00030e 9508                      	RET
+                                 DECUD:
+00030f 958a                      	DEC		DIAS
+000310 9150 0104                 	LDS		CONTADOR, UDIAS
+000312 3050                      	CPI		CONTADOR, 0									//Underflow de unidades normal
+000313 f021                      	BREQ	UNDFUD
+000314 955a                      	DEC		CONTADOR									//Decrementar unidades de dias
+000315 9350 0104                 	STS		UDIAS, CONTADOR
+000317 9508                      	RET
+                                 UNDFUD:
+000318 e059                      	LDI		CONTADOR, 9									//Setear las unidades de dias en 9
+000319 9350 0104                 	STS		UDIAS, CONTADOR
+00031b 9150 0105                 	LDS		CONTADOR, DDIAS								//Decrementar decenas de dias
+00031d 955a                      	DEC		CONTADOR
+00031e 9350 0105                 	STS		DDIAS, CONTADOR
+000320 9508                      	RET
                                  
                                  
                                  
@@ -1968,15 +2022,15 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  
                                  // Tabla de conversion hexadecimal a 7 segmentos
                                  TABLA:
-0002ed 81f3
-0002ee e9ea
-0002ef 7999
-0002f0 c17b
-0002f1 f9fb                          .DB 0xF3, 0x81, 0xEA, 0xE9, 0x99, 0x79, 0x7B, 0xC1, 0xFB, 0xF9
+000321 81f3
+000322 e9ea
+000323 7999
+000324 c17b
+000325 f9fb                          .DB 0xF3, 0x81, 0xEA, 0xE9, 0x99, 0x79, 0x7B, 0xC1, 0xFB, 0xF9
                                  
                                  TABLA2:
-0002f2 81f3
-0002f3 e5e6
+000326 81f3
+000327 e5e6
 
 
 RESOURCE USE INFORMATION
@@ -1996,37 +2050,37 @@ counted separately from r26..r31 here.
 "ATmega328P" register use summary:
 x  :   0 y  :   0 z  :   3 r0 :   0 r1 :   2 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16: 171 r17:   4 r18:  10 r19:   7 r20:  10 
-r21: 142 r22:  66 r23:   9 r24:  14 r25:   6 r26:   6 r27:   0 r28:   0 
+r13:   0 r14:   0 r15:   0 r16: 176 r17:   4 r18:  10 r19:   7 r20:  10 
+r21: 160 r22:  66 r23:  16 r24:  17 r25:   8 r26:   8 r27:   0 r28:   0 
 r29:   0 r30:   5 r31:   5 
 Registers used: 15 out of 35 (42.9%)
 
 "ATmega328P" instruction use summary:
 .lds  :   0 .sts  :   0 adc   :   2 add   :   2 adiw  :   0 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   0 break :   0 breq  :  16 brge  :   0 brhc  :   0 
+brcc  :   0 brcs  :   0 break :   0 breq  :  17 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
-brne  :  27 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brne  :  31 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
 brvs  :   0 bset  :   0 bst   :   0 call  :  32 cbi   :   8 cbr   :   0 
 clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   5 cpc   :   0 
-cpi   :  38 cpse  :   0 dec   :   7 eor   :  21 fmul  :   0 fmuls :   0 
+cpi   :  43 cpse  :   0 dec   :  10 eor   :  21 fmul  :   0 fmuls :   0 
 fmulsu:   0 icall :   0 ijmp  :   0 in    :   6 inc   :  21 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   : 108 lds   :  45 lpm   :   6 lsl   :   0 
-lsr   :   0 mov   :   5 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+ld    :   0 ldd   :   0 ldi   : 117 lds   :  48 lpm   :   6 lsl   :   0 
+lsr   :   0 mov   :   8 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
 neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  16 pop   :   6 
-push  :   6 rcall :   0 ret   :  25 reti  :   3 rjmp  :  17 rol   :   0 
+push  :   6 rcall :   0 ret   :  28 reti  :   3 rjmp  :  17 rol   :   0 
 ror   :   0 sbc   :   0 sbci  :   0 sbi   :  13 sbic  :   0 sbis  :   0 
-sbiw  :   0 sbr   :   0 sbrc  :  38 sbrs  :  15 sec   :   0 seh   :   0 
+sbiw  :   0 sbr   :   0 sbrc  :  40 sbrs  :  17 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
-sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :  78 
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :  85 
 sub   :   0 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
 Instructions used: 28 out of 113 (24.8%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x0005ea   1440     16   1456   32768   4.4%
+[.cseg] 0x000000 0x000652   1544     16   1560   32768   4.8%
 [.dseg] 0x000100 0x000108      0      8      8    2048   0.4%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 

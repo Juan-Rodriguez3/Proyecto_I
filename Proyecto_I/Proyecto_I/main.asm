@@ -929,6 +929,60 @@ UNDFDME2:
 	RET
 
 DECDAYS:
+	//Ver que la logica a usar dependende si estamos antes de agosto o despues
+	LDS		R16, UMES
+	CPI		R16, 8										//Si es igual a 7 ir LOVF2
+	BRNE	LUNDF1										//mientra no sea igual a 7 ir LOVF1
+LUNDF2:
+	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 0
+	Los de 30 terminan en 1*/
+	LDI		R25, 31										//Se cambia la lógica
+	LDI		R26, 32
+LUNDF1:
+	//De enero (0x01) a Julio (0x07) los meses de 31 dias terminan en 1
+	//Los de 30 terminan en 0 excepto febrero.
+	SBRC	R16, 0										//Revisar si el mes termina en 0 o en 1
+	MOV		LIMIT_OVF, R25								// 31
+	SBRS	R16, 0
+	MOV		LIMIT_OVF, R26								// 30
+	CPI		R16, 2										//Mientras no sea febrero usar 30 o 31 como limite
+	BRNE	SALTO
+	LDI		LIMIT_OVF, 29
+SALTO:
+	CPI		DIAS, 1
+	BRNE	DECUD										//Decrementar Dias
+	//Lógica de underflow de dias
+	MOV		DIAS, LIMIT_OVF								//Reiniciar los dias dependiendo del mes en el que estamos						
+	CPI		LIMIT_OVF, 29								//Mientras estemos en febrero se cambiara la lógica
+	BRNE	UNDFDD
+	LDI		CONTADOR, 8									//Realizar el underflow especial para febrero.
+	STS		UDIAS, CONTADOR
+	LDI		CONTADOR, 2
+	STS		DDIAS, CONTADOR
+	RET 
+UNDFDD:	
+	LDI		CONTADOR, 3									//Las decenas siempre se resetean en 3
+	STS		DDIAS, CONTADOR
+	SBRS	LIMIT_OVF, 5								//Salta si Limit_ovf --> 0010 0000 = 32
+	LDI		CONTADOR, 0								
+	SBRC	LIMIT_OVF, 5								//Salta si LIMIT_OVF --> 0001 1111 = 31
+	LDI		CONTADOR, 1
+	STS		UDIAS, CONTADOR
+	RET
+DECUD:
+	DEC		DIAS
+	LDS		CONTADOR, UDIAS
+	CPI		CONTADOR, 0									//Underflow de unidades normal
+	BREQ	UNDFUD
+	DEC		CONTADOR									//Decrementar unidades de dias
+	STS		UDIAS, CONTADOR
+	RET
+UNDFUD:
+	LDI		CONTADOR, 9									//Setear las unidades de dias en 9
+	STS		UDIAS, CONTADOR
+	LDS		CONTADOR, DDIAS								//Decrementar decenas de dias
+	DEC		CONTADOR
+	STS		DDIAS, CONTADOR
 	RET
 
 
