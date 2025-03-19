@@ -131,10 +131,10 @@ SETUP:
 	STS		DHOR, R16		
 	//DIAS																	
 	STS		DMES, R16
+	STS		DDIAS, R16
+	LDI		R16, 1
 	STS		UMES, R16
-	STS		UDIAS, R16
-	
-	STS		DDIAS, R16								
+	STS		UDIAS, R16								
 	LDS		CONTADOR, UMIN							
 													
 													
@@ -950,6 +950,7 @@ SALTO:
 	CPI		DIAS, 1
 	BRNE	DECUD										//Decrementar Dias
 	//Lógica de underflow de dias
+	
 	//Reiniciar los dias dependiendo del mes en el que estamos
 	SBRC	LIMIT_OVF, 5	
 	LDI		DIAS, 31								
