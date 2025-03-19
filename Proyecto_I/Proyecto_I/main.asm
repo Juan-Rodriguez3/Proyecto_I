@@ -115,13 +115,13 @@ SETUP:
 	STS		UCSR0B, R16								
 													
 	//Valores iniciales								
-	LDI		SET_PB_A, 0x1F							
+	LDI		SET_PB_A, 0x0F							
 	LDI		SET_PB_N, 0x00							
 	LDI		DISPLAY, 0x00							
 	LDI		FLAGS_MP, 0x00							//Bandera para los puntos
 	LDI		FLAG_STATE, 0x00						//Por default inicia en el modo hora.
 	LDI		LIMIT_OVF, 0x00							//Comparar los dias con este registro
-	LDI		DIAS, 28
+	LDI		DIAS, 0x00
 	LDI		R25, 32									//OVF de mes para meses que terminan 1
 	LDI		R26, 31									//OVF de mes para meses que terminan 0
 	//HORA
@@ -131,11 +131,9 @@ SETUP:
 	STS		DHOR, R16		
 	//DIAS																	
 	STS		DMES, R16
-	LDI		R16, 0x01
 	STS		UMES, R16
-	LDI		R16, 0x08
 	STS		UDIAS, R16
-	LDI		R16, 0x02	
+	
 	STS		DDIAS, R16								
 	LDS		CONTADOR, UMIN							
 													
@@ -952,9 +950,15 @@ SALTO:
 	CPI		DIAS, 1
 	BRNE	DECUD										//Decrementar Dias
 	//Lógica de underflow de dias
-	MOV		DIAS, LIMIT_OVF								//Reiniciar los dias dependiendo del mes en el que estamos						
+	//Reiniciar los dias dependiendo del mes en el que estamos
+	SBRC	LIMIT_OVF, 5	
+	LDI		DIAS, 31								
+	SBRS	LIMIT_OVF, 5
+	LDI		DIAS, 30	
+						
 	CPI		LIMIT_OVF, 29								//Mientras estemos en febrero se cambiara la lógica
 	BRNE	UNDFDD
+	LDI		DIAS, 28
 	LDI		CONTADOR, 8									//Realizar el underflow especial para febrero.
 	STS		UDIAS, CONTADOR
 	LDI		CONTADOR, 2
