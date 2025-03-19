@@ -875,8 +875,26 @@ UNDFUDH:
 	STS		DHOR, CONTADOR	
 R_DH:
 	RET
-
+//Rutina de decrementacion de minutos
 DECMINS:
+	LDS		CONTADOR, UMIN
+	CPI		CONTADOR, 0
+	BREQ	UNDFUM
+	DEC		CONTADOR									//Decrementar unidades de minutO
+	STS		UMIN, CONTADOR
+	RET
+UNDFUM:
+	LDI		CONTADOR, 9									//Reiniciar en 9 las unidades de minito
+	STS		UMIN, CONTADOR
+	LDS		CONTADOR, DMIN
+	CPI		CONTADOR, 0	
+	BREQ	UNDFDM			
+	DEC		CONTADOR									//Decrementar horas de minuto
+	STS		DMIN, CONTADOR
+	RET
+UNDFDM:
+	LDI		CONTADOR, 5									//Reiniciar las decenas de minuto a 5
+	STS		DMIN, CONTADOR
 	RET
 
 DECDAYS:
