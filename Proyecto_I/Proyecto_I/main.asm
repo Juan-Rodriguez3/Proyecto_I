@@ -123,7 +123,8 @@ SETUP:
 	LDI		CONTAD0R, 0x00							
 	LDI		SET_PB_N, 0x00							
 	LDI		DISPLAY, 0x00							
-	LDI		FLAGS_MP, 0x00							//Bandera para los puntos
+	LDI		FLAGS_MP, 0x00							//Banderas multipróposito
+	LDI		FLAGS_MP1, 0x00							//Banderas multipróposito
 	LDI		FLAG_STATE, 0x00						//Por default inicia en el modo hora.
 	LDI		LIMIT_OVF, 0x00							//Comparar los dias con este registro
 	LDI		DIAS, 0x01
@@ -500,6 +501,8 @@ DISPLAY1:
 	RJMP	FLASH1
 	SBRC	FLAGS_MP1, 1								//Salta si FDISP01 --> 0
 	LPM		R27, Z
+	LDI		R16, 0x04
+	EOR		R27, R16
 FLASH1:
 	MOV		R16, R27									// LDI	DISPLAY, (1<<PT)
 	SBRC	FLAGS_MP1, 0								//Salta si FLED es 0
