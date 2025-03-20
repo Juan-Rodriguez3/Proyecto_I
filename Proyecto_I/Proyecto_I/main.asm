@@ -365,8 +365,12 @@ ISR_TIMER0:
 	LDI		R16, T0VALUE
 	OUT		TCNT0, R16									//establecer el valor inicial a TCNT0 para interrumpir cada 10ms
 
-
-
+	INC		CONTAD0R
+	CPI		CONTAD0R, 2									//Cada interrupcion es 0.25 s si contador=2 pasaron 0.5 s
+	BRNE	RETORN0
+	LDI		CONTAD0R, 0x00								//Reinciar el contad0r
+	LDI		R16, 0x08									//LDI	R16, (1<<FLED)
+	EOR		FLAG_STATE, R16
 RETORN0:
 	POP		R16
 	OUT		SREG, R16
@@ -419,7 +423,7 @@ DELAY:
 MOV_POINTER:
 	LDI		ZH, HIGH(TABLA<<1)				
 	LDI		ZL, LOW(TABLA<<1)
-	ADD		ZL, R16								//Se incrementa la parte baja
+	ADD		ZL, R16										//Se incrementa la parte baja
 	ADC		ZH, R1										//Se suma 0 y el carro de la parte baja	
 	LPM		DISPLAY, Z
 	OUT		PORTD, DISPLAY 
@@ -428,16 +432,19 @@ MOV_POINTER:
 MOV_POINTER2:
 	LDI		ZH, HIGH(TABLA2<<1)				
 	LDI		ZL, LOW(TABLA2<<1)
-	ADD		ZL, R16								//Se incrementa la parte baja
+	ADD		ZL, R16										//Se incrementa la parte baja
 	ADC		ZH, R1										//Se suma 0 y el carro de la parte baja	
 	LPM		DISPLAY, Z
+	LDI		R16, 0x08									// LDI	DISPLAY, (1<<PT)
+	SBRC	FLAG_STATE, 3								//Salta si FLED es 0
+	EOR		DISPLAY, R16								//Encender el punto display 2 (volteado)s
 	OUT		PORTD, DISPLAY 
 	RET
 /***************Mover los punteros***************/
 
 /***************Multiplexeo para fechas***************/
 MULTIPLEX:
-	//Unidades de minutos/MES
+	//Unidades de minutos/MES	Display 3
 	SBRC	FLAGS_MP, 6								// HORA --> 1 usar unidades de minuto
 	LDS		R16, UMIN
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar unidades mes
@@ -447,7 +454,7 @@ MULTIPLEX:
 	CALL	DELAY
 	CBI		PORTB, 3
 
-	//Decenas de minutos/MES
+	//Decenas de minutos/MES Display 2
 	SBRC	FLAGS_MP, 6								// HORA --> 1 usar decenas de minuto
 	LDS		R16, DMIN
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar decenas mes
@@ -457,7 +464,7 @@ MULTIPLEX:
 	CALL	DELAY
 	CBI		PORTB, 2
 
-	//Unidades de horas/dias
+	//Unidades de horas/dias Display1
 	SBRC	FLAGS_MP, 6								// HORA --> 1 usar unidades de horas
 	LDS		R16, UHOR
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar Unidades de dias
@@ -467,7 +474,7 @@ MULTIPLEX:
 	CALL	DELAY
 	CBI		PORTB, 1
 
-	//Decenas de horas/dias
+	//Decenas de horas/dias Display0
 	SBRC	FLAGS_MP, 6								// HORA --> 1 usar decenas de hpras
 	LDS		R16, DHOR
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar decenas dias
