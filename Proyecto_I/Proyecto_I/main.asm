@@ -15,7 +15,8 @@
 .def	CONTAD0R=R18						//PUERTO C
 .def	DISPLAY=R19							//PUERTO D
 .def	FLAG_STATE=R20						//Bandera de Modos	
-.def	FLAGS_MP=R22						//Bandera Multiproposito
+.def	FLAGS_MP=R21
+.def	FLAGS_MP1=R22						//Bandera Multiproposito
 .def	LIMIT_OVF=R23						//Contador de dias y meses
 .def	DIAS=R24							//Contador de dias y meses
 .equ	T1VALUE= 64558						//Valor inicial para la interrupcion de 60 seg
@@ -370,7 +371,7 @@ ISR_TIMER0:
 	BRNE	RETORN0
 	LDI		CONTAD0R, 0x00								//Reinciar el contad0r
 	LDI		R16, 0x08									//LDI	R16, (1<<FLED)
-	EOR		FLAG_STATE, R16
+	EOR		FLAGS_MP1, R16
 RETORN0:
 	POP		R16
 	OUT		SREG, R16
@@ -425,8 +426,7 @@ MOV_POINTER:
 	LDI		ZL, LOW(TABLA<<1)
 	ADD		ZL, R16										//Se incrementa la parte baja
 	ADC		ZH, R1										//Se suma 0 y el carro de la parte baja	
-	LPM		DISPLAY, Z
-	OUT		PORTD, DISPLAY 
+	LPM		DISPLAY, Z 
 	RET
 
 MOV_POINTER2:
@@ -436,8 +436,8 @@ MOV_POINTER2:
 	ADC		ZH, R1										//Se suma 0 y el carro de la parte baja	
 	LPM		DISPLAY, Z
 	LDI		R16, 0x08									// LDI	DISPLAY, (1<<PT)
-	SBRC	FLAG_STATE, 3								//Salta si FLED es 0
-	EOR		DISPLAY, R16								//Encender el punto display 2 (volteado)s
+	SBRC	FLAGS_MP1, 3								//Salta si FLED es 0
+	EOR		DISPLAY, R16								//Encender el punto display 2 (volteado)s*/
 	OUT		PORTD, DISPLAY 
 	RET
 /***************Mover los punteros***************/
@@ -450,6 +450,7 @@ MULTIPLEX:
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar unidades mes
 	LDS		R16, UMES
 	CALL	MOV_POINTER
+	OUT		PORTD, DISPLAY
 	SBI		PORTB, 3
 	CALL	DELAY
 	CBI		PORTB, 3
@@ -460,6 +461,10 @@ MULTIPLEX:
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar decenas mes
 	LDS		R16, DMES
 	CALL	MOV_POINTER2
+	LDI		R16, 0x08									// LDI	DISPLAY, (1<<PT)
+	SBRC	FLAGS_MP1, 3								//Salta si FLED es 0
+	EOR		DISPLAY, R16								//Encender el punto display 2 (volteado)s*/
+	OUT		PORTD, DISPLAY
 	SBI		PORTB, 2
 	CALL	DELAY
 	CBI		PORTB, 2
@@ -480,6 +485,7 @@ MULTIPLEX:
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar decenas dias
 	LDS		R16, DDIAS
 	CALL	MOV_POINTER
+	OUT		PORTD, DISPLAY
 	SBI		PORTB, 0
 	CALL	DELAY
 	CBI		PORTB, 0
