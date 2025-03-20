@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Wed Mar 19 21:07:29 2025
+AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Wed Mar 19 21:18:42 2025
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm(13): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\M328PDEF.inc'
@@ -1176,7 +1176,7 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  													
                                  	//Usar el puntero Z como salida de display		
 000076 e0f6                      	LDI		ZH, HIGH(TABLA<<1)						//Carga la parte alta de la direcci?n de tabla en el registro ZH
-000077 e7e2                      	LDI		ZL, LOW(TABLA<<1)						//Carga la parte baja de la direcci?n de la tabla en el registro ZL
+000077 e7e4                      	LDI		ZL, LOW(TABLA<<1)						//Carga la parte baja de la direcci?n de la tabla en el registro ZL
 000078 9134                      	LPM		DISPLAY, Z								//Carga en R18 el valor de la tabla en ela dirrecion Z
 000079 b93b                      	OUT		PORTD, DISPLAY							//Muestra en el puerto D el valor leido de la tabla
                                  													
@@ -1203,11 +1203,11 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  	
                                  	//Actualizar CLK							
 000084 fd55                      	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
-000085 940e 017d                 	CALL	LOGICH
+000085 940e 017e                 	CALL	LOGICH
                                  
                                  	//Actualizar fecha
 000087 fd50                      	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
-000088 940e 01b5                 	CALL	LOGICF	
+000088 940e 01b6                 	CALL	LOGICF	
                                  							
 00008a c00f                      	RJMP	MAIN													
                                  
@@ -1230,11 +1230,11 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  	
                                  	//Actualizar CLK							
 000093 fd55                      	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
-000094 940e 017d                 	CALL	LOGICH
+000094 940e 017e                 	CALL	LOGICH
                                  	
                                  	//Actualizar fecha
 000096 fd50                      	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
-000097 940e 01b5                 	CALL	LOGICF					
+000097 940e 01b6                 	CALL	LOGICF					
                                  				
 000099 c000                      	RJMP	MAIN												
                                  /********************Modos********************/
@@ -1276,11 +1276,11 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  
                                  	//Actualizar reloj							
 0000af fd55                      	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
-0000b0 940e 017d                 	CALL	LOGICH	
+0000b0 940e 017e                 	CALL	LOGICH	
                                  
                                  	//Actualizar fecha
 0000b2 fd50                      	SBRC	FLAGS_MP, 0
-0000b3 940e 01b5                 	CALL	LOGICF
+0000b3 940e 01b6                 	CALL	LOGICF
                                  
                                  	//Multiplexeo								
 0000b5 940e 0142                 	CALL	MULTIPLEX								
@@ -1304,11 +1304,11 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  
                                  	//Actualizar CLK							
 0000c0 fd55                      	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
-0000c1 940e 017d                 	CALL	LOGICH		
+0000c1 940e 017e                 	CALL	LOGICH		
                                  
                                  	//Mostrar fecha						
 0000c3 fd50                      	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
-0000c4 940e 01b5                 	CALL	LOGICF										
+0000c4 940e 01b6                 	CALL	LOGICF										
 0000c6 940e 0142                 	CALL	MULTIPLEX								
 0000c8 cfd1                      	RJMP	MAIN									
                                  													
@@ -1333,9 +1333,9 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  
                                  	//Incrementar o decrementar
 0000d3 fd51                      	SBRC	FLAGS_MP, 1								// Si Incrementar --> 1 incrementar
-0000d4 940e 0200                 	CALL	INCREMENTAR
+0000d4 940e 0201                 	CALL	INCREMENTAR
 0000d6 fd52                      	SBRC	FLAGS_MP, 2								//Si Decrementar --> 1 decrementar
-0000d7 940e 028f                 	CALL	DECREMENTAR
+0000d7 940e 0290                 	CALL	DECREMENTAR
 0000d9 940e 0142                 	CALL	MULTIPLEX	
                                  	
                                  	//Clear Banderas de seleccion de parejas de display
@@ -1361,9 +1361,9 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  	
                                  	//Incrementar o decrementar
 0000e6 fd51                      	SBRC	FLAGS_MP, 1								// Si Incrementar --> 1 incrementar
-0000e7 940e 0200                 	CALL	INCREMENTAR
+0000e7 940e 0201                 	CALL	INCREMENTAR
 0000e9 fd52                      	SBRC	FLAGS_MP, 2								//Si Decrementar --> 1 decrementar
-0000ea 940e 028f                 	CALL	DECREMENTAR
+0000ea 940e 0290                 	CALL	DECREMENTAR
 0000ec 940e 0142                 	CALL	MULTIPLEX						
 0000ee cfab                      	RJMP	MAIN																	
                                  													
@@ -1458,7 +1458,7 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  /***************Mover los punteros***************/
                                  MOV_POINTER:
 00012b e0f6                      	LDI		ZH, HIGH(TABLA<<1)				
-00012c e7e2                      	LDI		ZL, LOW(TABLA<<1)
+00012c e7e4                      	LDI		ZL, LOW(TABLA<<1)
 00012d 0fe0                      	ADD		ZL, R16										//Se incrementa la parte baja
 00012e 1df1                      	ADC		ZH, R1										//Se suma 0 y el carro de la parte baja	
 00012f 9134                      	LPM		DISPLAY, Z 
@@ -1466,7 +1466,7 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  
                                  MOV_POINTER2:
 000131 e0f6                      	LDI		ZH, HIGH(TABLA2<<1)				
-000132 e7ec                      	LDI		ZL, LOW(TABLA2<<1)
+000132 e7ee                      	LDI		ZL, LOW(TABLA2<<1)
 000133 0fe0                      	ADD		ZL, R16										//Se incrementa la parte baja
 000134 1df1                      	ADC		ZH, R1										//Se suma 0 y el carro de la parte baja	
 000135 9134                      	LPM		DISPLAY, Z
@@ -1483,9 +1483,9 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  //********Banderas de parpadeo encender********//
                                  FLAG_DISP:
 00013c fd53                      	SBRC	FLAGS_MP, 3								//Salta si UNIDEC --> 0
-00013d e004                      	LDI		R16, 0x04								//LDI	R16, (1<<FDISP23)
+00013d e00c                      	LDI		R16, 0x0C								//LDI	R16, (1<<FDISP23)
 00013e ff53                      	SBRS	FLAGS_MP, 3								//Salta si UNIDEC --> 1
-00013f e002                      	LDI		R16, 0x02								//LDI	R16, (1<<FDISP01)
+00013f e00a                      	LDI		R16, 0x0A								//LDI	R16, (1<<FDISP01)
 000140 2760                      	EOR		FLAGS_MP1, R16
 000141 9508                      	RET
                                  //********Banderas de parpadeo encender********//
@@ -1498,563 +1498,567 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
 000143 9100 0100                 	LDS		R16, UMIN
 000145 fd57                      	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar unidades mes
 000146 9100 0106                 	LDS		R16, UMES
+                                 
 000148 940e 012b                 	CALL	MOV_POINTER
+                                 
 00014a b93b                      	OUT		PORTD, DISPLAY
-00014b fd61                      	SBRC	FLAGS_MP1, 1							//Salta si FDISP01
-00014c 9a2b                      	SBI		PORTB, 3
-00014d 940e 0123                 	CALL	DELAY
-00014f 982b                      	CBI		PORTB, 3
+00014b 9a2b                      	SBI		PORTB, 3
+00014c 940e 0123                 	CALL	DELAY
+00014e 982b                      	CBI		PORTB, 3
                                  
                                  	//Decenas de minutos/MES Display 2
                                  DISPLAY2:
-000150 fd56                      	SBRC	FLAGS_MP, 6									// HORA --> 1 usar decenas de minuto
-000151 9100 0101                 	LDS		R16, DMIN
-000153 fd57                      	SBRC	FLAGS_MP, 7									// FECHA --> 1 usar decenas mes
-000154 9100 0107                 	LDS		R16, DMES	
+00014f fd56                      	SBRC	FLAGS_MP, 6									// HORA --> 1 usar decenas de minuto
+000150 9100 0101                 	LDS		R16, DMIN
+000152 fd57                      	SBRC	FLAGS_MP, 7									// FECHA --> 1 usar decenas mes
+000153 9100 0107                 	LDS		R16, DMES	
                                  
-000156 940e 0131                 	CALL	MOV_POINTER2
-000158 9a2a                      	SBI		PORTB, 2
-000159 940e 0123                 	CALL	DELAY
-00015b 982a                      	CBI		PORTB, 2
+000155 940e 0131                 	CALL	MOV_POINTER2
+000157 9a2a                      	SBI		PORTB, 2
+000158 940e 0123                 	CALL	DELAY
+00015a 982a                      	CBI		PORTB, 2
                                  
                                  	//Unidades de horas/dias Display1
                                  DISPLAY1:
-00015c fd56                      	SBRC	FLAGS_MP, 6									// HORA --> 1 usar unidades de horas
-00015d 9100 0102                 	LDS		R16, UHOR
-00015f fd57                      	SBRC	FLAGS_MP, 7									// FECHA --> 1 usar Unidades de dias
-000160 9100 0104                 	LDS		R16, UDIAS
-000162 940e 012b                 	CALL	MOV_POINTER
+00015b fd56                      	SBRC	FLAGS_MP, 6									// HORA --> 1 usar unidades de horas
+00015c 9100 0102                 	LDS		R16, UHOR
+00015e fd57                      	SBRC	FLAGS_MP, 7									// FECHA --> 1 usar Unidades de dias
+00015f 9100 0104                 	LDS		R16, UDIAS
+000161 940e 012b                 	CALL	MOV_POINTER
                                  	//Parpadeo de punto
-000164 e0b4                      	LDI		R27, 0x04									// LDI	DISPLAY, (1<<PT)
-000165 fd61                      	SBRC	FLAGS_MP1, 1								//Salta si FDISP01 --> 0
-000166 91b4                      	LPM		R27, Z
-000167 2f0b                      	MOV		R16, R27									// LDI	DISPLAY, (1<<PT)
-000168 fd60                      	SBRC	FLAGS_MP1, 0								//Salta si FLED es 0
-000169 2730                      	EOR		DISPLAY, R16								//Encender el punto display 2 (volteado)s
+000163 e0b4                      	LDI		R27, 0x04									// LDI	DISPLAY, (1<<PT)
+000164 ff63                      	SBRS	FLAGS_MP1, 3								//Salta si FLASH --> 1
+000165 c002                      	RJMP	FLASH1
+000166 fd61                      	SBRC	FLAGS_MP1, 1								//Salta si FDISP01 --> 0
+000167 91b4                      	LPM		R27, Z
+                                 FLASH1:
+000168 2f0b                      	MOV		R16, R27									// LDI	DISPLAY, (1<<PT)
+000169 fd60                      	SBRC	FLAGS_MP1, 0								//Salta si FLED es 0
+00016a 2730                      	EOR		DISPLAY, R16								//Encender el punto display 2 (volteado)s
                                  
-00016a b93b                      	OUT		PORTD, DISPLAY
-00016b 9a29                      	SBI		PORTB, 1
-00016c 940e 0123                 	CALL	DELAY
-00016e 9829                      	CBI		PORTB, 1
+00016b b93b                      	OUT		PORTD, DISPLAY
+00016c 9a29                      	SBI		PORTB, 1
+00016d 940e 0123                 	CALL	DELAY
+00016f 9829                      	CBI		PORTB, 1
                                  
                                  	//Decenas de horas/dias Display0
                                  DISPLAY0:
-00016f fd56                      	SBRC	FLAGS_MP, 6								// HORA --> 1 usar decenas de hpras
-000170 9100 0103                 	LDS		R16, DHOR
-000172 fd57                      	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar decenas dias
-000173 9100 0105                 	LDS		R16, DDIAS
+000170 fd56                      	SBRC	FLAGS_MP, 6								// HORA --> 1 usar decenas de hpras
+000171 9100 0103                 	LDS		R16, DHOR
+000173 fd57                      	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar decenas dias
+000174 9100 0105                 	LDS		R16, DDIAS
                                  
-000175 940e 012b                 	CALL	MOV_POINTER
-000177 b93b                      	OUT		PORTD, DISPLAY
-000178 9a28                      	SBI		PORTB, 0
-000179 940e 0123                 	CALL	DELAY
-00017b 9828                      	CBI		PORTB, 0
-00017c 9508                      	RET
+000176 940e 012b                 	CALL	MOV_POINTER
+000178 b93b                      	OUT		PORTD, DISPLAY
+000179 9a28                      	SBI		PORTB, 0
+00017a 940e 0123                 	CALL	DELAY
+00017c 9828                      	CBI		PORTB, 0
+00017d 9508                      	RET
                                  /***************Multiplexeo para fechas**********************/
                                  
                                  /***************Logica de CLK**********************/
                                  LOGICH:	
                                  	//Limpiar bandera de clock
-00017d e200                      	LDI		R16, 0x20								//LDI	R16, (1<<CLK)
-00017e 2750                      	EOR		FLAGS_MP, R16
+00017e e200                      	LDI		R16, 0x20								//LDI	R16, (1<<CLK)
+00017f 2750                      	EOR		FLAGS_MP, R16
                                  													
                                  	//incrementar el contador de unidades			
-00017f 9100 0100                 	LDS		R16, UMIN							//Pasar las UMIN al contador
-000181 9503                      	INC		R16								//Incrementar contador
-000182 9300 0100                 	STS		UMIN, R16							//Actualizar el valor de UMIN
+000180 9100 0100                 	LDS		R16, UMIN							//Pasar las UMIN al contador
+000182 9503                      	INC		R16								//Incrementar contador
+000183 9300 0100                 	STS		UMIN, R16							//Actualizar el valor de UMIN
                                  
                                  	//Overflow en unidades de minuto (10 minutos)
-000184 300a                      	CPI		R16, 10							//ovf
-000185 f571                      	BRNE	RETORN1
+000185 300a                      	CPI		R16, 10							//ovf
+000186 f571                      	BRNE	RETORN1
                                  
                                  	//Reiniciar el contador de Unidades de minutos							
-000186 e000                      	LDI		R16, 0x00
-000187 9300 0100                 	STS		UMIN, R16
+000187 e000                      	LDI		R16, 0x00
+000188 9300 0100                 	STS		UMIN, R16
                                  
                                  	//Incrementar el contador de decenas de minutos
-000189 9100 0101                 	LDS		R16, DMIN
-00018b 9503                      	INC		R16
-00018c 9300 0101                 	STS		DMIN, R16
+00018a 9100 0101                 	LDS		R16, DMIN
+00018c 9503                      	INC		R16
+00018d 9300 0101                 	STS		DMIN, R16
                                  
                                  	//Overflow en decenas de minuto
-00018e 3006                      	CPI		R16, 6 
-00018f f521                      	BRNE	RETORN1
+00018f 3006                      	CPI		R16, 6 
+000190 f521                      	BRNE	RETORN1
                                  
                                  	//Reiniciar el contador de decenas de minutos (60)
-000190 e000                      	LDI		R16, 0x00
-000191 9300 0101                 	STS		DMIN, R16
+000191 e000                      	LDI		R16, 0x00
+000192 9300 0101                 	STS		DMIN, R16
                                  
                                  	//Incrementar el contador de unidades de hora
-000193 9100 0102                 	LDS		R16, UHOR
-000195 9503                      	INC		R16
-000196 9300 0102                 	STS		UHOR, R16
+000194 9100 0102                 	LDS		R16, UHOR
+000196 9503                      	INC		R16
+000197 9300 0102                 	STS		UHOR, R16
                                  
                                  	//El overflow de las unidades de hora dependen de las decenas de hora
                                  	// si decenas= 1 | 0 el overflow >>> es en 9
                                  	// si decenas=2  el overflow >>> es en 4
-000198 9100 0103                 	LDS		R16, DHOR
-00019a 3002                      	CPI		R16, 2
-00019b f069                      	BREQ	OVERF_2	
+000199 9100 0103                 	LDS		R16, DHOR
+00019b 3002                      	CPI		R16, 2
+00019c f069                      	BREQ	OVERF_2	
                                  
                                  	//Overflow de unidades de hora para decenas 0-1
-00019c 9100 0102                 	LDS		R16, UHOR								//Se vuelve a cargar las unidades para comparar
-00019e 300a                      	CPI		R16, 10
-00019f f4a1                      	BRNE	RETORN1
-0001a0 e000                      	LDI		R16, 0x00								//reiniciar el contador de unidades
-0001a1 9300 0102                 	STS		UHOR, R16
+00019d 9100 0102                 	LDS		R16, UHOR								//Se vuelve a cargar las unidades para comparar
+00019f 300a                      	CPI		R16, 10
+0001a0 f4a1                      	BRNE	RETORN1
+0001a1 e000                      	LDI		R16, 0x00								//reiniciar el contador de unidades
+0001a2 9300 0102                 	STS		UHOR, R16
                                  
                                  	//Incrementar el contador de decenas de horas
-0001a3 9100 0103                 	LDS		R16, DHOR
-0001a5 9503                      	INC		R16
-0001a6 9300 0103                 	STS		DHOR, R16
-0001a8 c00b                      	RJMP	RETORN1
+0001a4 9100 0103                 	LDS		R16, DHOR
+0001a6 9503                      	INC		R16
+0001a7 9300 0103                 	STS		DHOR, R16
+0001a9 c00b                      	RJMP	RETORN1
                                  
                                  //OVF de unidades para decenas de 2
                                  OVERF_2:
-0001a9 9100 0102                 	LDS		R16, UHOR								//se cargan las unidades para comparar
-0001ab 3004                      	CPI		R16, 4									//Esta vez el limite es 4
-0001ac f439                      	BRNE	RETORN1
+0001aa 9100 0102                 	LDS		R16, UHOR								//se cargan las unidades para comparar
+0001ac 3004                      	CPI		R16, 4									//Esta vez el limite es 4
+0001ad f439                      	BRNE	RETORN1
                                  
                                  	//Reiniciar los contadores de unidades y decenas de hora
-0001ad e000                      	LDI		R16, 0x00								//reiniciar contadores de unidades y decenas de horas
-0001ae 9300 0102                 	STS		UHOR, R16
-0001b0 9300 0103                 	STS		DHOR, R16
+0001ae e000                      	LDI		R16, 0x00								//reiniciar contadores de unidades y decenas de horas
+0001af 9300 0102                 	STS		UHOR, R16
+0001b1 9300 0103                 	STS		DHOR, R16
                                  
                                  	//Encender bandera que incrementa DIAS
-0001b2 e001                      	LDI		R16, 0x01									//LDI	R16, (1<<OVFD)
-0001b3 2750                      	EOR		FLAGS_MP, R16								
+0001b3 e001                      	LDI		R16, 0x01									//LDI	R16, (1<<OVFD)
+0001b4 2750                      	EOR		FLAGS_MP, R16								
                                  RETORN1:
-0001b4 9508                      	RET
+0001b5 9508                      	RET
                                  /***************Logica de CLK**********************/
                                  
                                  /***************Logica para ovf de modo fecha***************/
                                  LOGICF:
                                  	//Resetear la bandera CLK
-0001b5 e001                      	LDI		R16, 0x01									//LDI	R16, (1<<OVFD)
-0001b6 2750                      	EOR		FLAGS_MP, R16
+0001b6 e001                      	LDI		R16, 0x01									//LDI	R16, (1<<OVFD)
+0001b7 2750                      	EOR		FLAGS_MP, R16
                                  
                                  	//Ver que la logica a usar dependende si estamos antes de agosto o despues
-0001b7 9100 0106                 	LDS		R16, UMES
-0001b9 3008                      	CPI		R16, 8										//Si es igual a 7 ir LOVF2
-0001ba f411                      	BRNE	LOVF1										//mientra no sea igual a 7 ir LOVF1
+0001b8 9100 0106                 	LDS		R16, UMES
+0001ba 3008                      	CPI		R16, 8										//Si es igual a 7 ir LOVF2
+0001bb f411                      	BRNE	LOVF1										//mientra no sea igual a 7 ir LOVF1
                                  LOVF2:
                                  	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 0
                                  	Los de 30 terminan en 1*/
-0001bb e19f                      	LDI		R25, 31										//Se cambia la lógica
-0001bc e2a0                      	LDI		R26, 32
+0001bc e19f                      	LDI		R25, 31										//Se cambia la lógica
+0001bd e2a0                      	LDI		R26, 32
                                  LOVF1:
                                  	//De enero (0x01) a Julio (0x07) los meses de 31 dias terminan en 1
                                  	//Los de 30 terminan en 0 excepto febrero.
-0001bd fd00                      	SBRC	R16, 0										//Revisar si el mes termina en 0 o en 1
-0001be 2f79                      	MOV		LIMIT_OVF, R25								// 31
-0001bf ff00                      	SBRS	R16, 0
-0001c0 2f7a                      	MOV		LIMIT_OVF, R26								// 30
-0001c1 3002                      	CPI		R16, 2										//Mientras no sea febrero usar 30 o 31 como limite
-0001c2 f409                      	BRNE	INCREMENTAR_FECHA
-0001c3 e17d                      	LDI		LIMIT_OVF, 29								// 1C 0001 1100
+0001be fd00                      	SBRC	R16, 0										//Revisar si el mes termina en 0 o en 1
+0001bf 2f79                      	MOV		LIMIT_OVF, R25								// 31
+0001c0 ff00                      	SBRS	R16, 0
+0001c1 2f7a                      	MOV		LIMIT_OVF, R26								// 30
+0001c2 3002                      	CPI		R16, 2										//Mientras no sea febrero usar 30 o 31 como limite
+0001c3 f409                      	BRNE	INCREMENTAR_FECHA
+0001c4 e17d                      	LDI		LIMIT_OVF, 29								// 1C 0001 1100
                                  
                                  	//Incrementar dias
                                  INCREMENTAR_FECHA:										
-0001c4 9583                      	INC		DIAS										//Incrementar dias
-0001c5 1787                      	CP		DIAS, LIMIT_OVF								//Comparar con el limite para el ovf
-0001c6 f081                      	BREQ	RESET_UD										//Si es distinto al limite saltar
+0001c5 9583                      	INC		DIAS										//Incrementar dias
+0001c6 1787                      	CP		DIAS, LIMIT_OVF								//Comparar con el limite para el ovf
+0001c7 f081                      	BREQ	RESET_UD										//Si es distinto al limite saltar
                                  
                                  
                                  INC_UD:
                                  	//Incrementar unidades de dias
-0001c7 9100 0104                 	LDS		R16, UDIAS			
-0001c9 9503                      	INC		R16											//Incrementar las unidades de dias
-0001ca 9300 0104                 	STS		UDIAS, R16
-0001cc 300a                      	CPI		R16, 10										//Si es distinto a 10 saltar
-0001cd f589                      	BRNE	RETORNF		
+0001c8 9100 0104                 	LDS		R16, UDIAS			
+0001ca 9503                      	INC		R16											//Incrementar las unidades de dias
+0001cb 9300 0104                 	STS		UDIAS, R16
+0001cd 300a                      	CPI		R16, 10										//Si es distinto a 10 saltar
+0001ce f589                      	BRNE	RETORNF		
                                  									
                                  	//Se ejecuta unicamente cuando hay OVF en unidades de dias
                                  	//Reiniciar las unidades e incrementar las decenas
-0001ce e000                      	LDI		R16, 0x00									//Reiniciar contador de unidades dias
-0001cf 9300 0104                 	STS		UDIAS, R16									//Guardar el contador de unidades dias
+0001cf e000                      	LDI		R16, 0x00									//Reiniciar contador de unidades dias
+0001d0 9300 0104                 	STS		UDIAS, R16									//Guardar el contador de unidades dias
                                  
                                  	//Incrementar decenas de dias
-0001d1 9100 0105                 	LDS		R16, DDIAS
-0001d3 9503                      	INC		R16									
-0001d4 9300 0105                 	STS		DDIAS, R16	
-0001d6 c028                      	RJMP	RETORNF
+0001d2 9100 0105                 	LDS		R16, DDIAS
+0001d4 9503                      	INC		R16									
+0001d5 9300 0105                 	STS		DDIAS, R16	
+0001d7 c028                      	RJMP	RETORNF
                                  	
                                  RESET_UD:
                                  	//Reiniciar los dias, unidades y decenas de dias
-0001d7 e088                      	LDI		DIAS, 8
-0001d8 9380 0104                 	STS		UDIAS, DIAS
-0001da e082                      	LDI		DIAS, 2
-0001db 9380 0105                 	STS		DDIAS, DIAS
-0001dd e18c                      	LDI		DIAS, 28
+0001d8 e088                      	LDI		DIAS, 8
+0001d9 9380 0104                 	STS		UDIAS, DIAS
+0001db e082                      	LDI		DIAS, 2
+0001dc 9380 0105                 	STS		DDIAS, DIAS
+0001de e18c                      	LDI		DIAS, 28
                                  	
                                  	//Incrementar mes, unidades y decenas de mes
-0001de 9100 0107                 	LDS		R16, DMES
-0001e0 3001                      	CPI		R16, 1										//Si es igual a 1
-0001e1 f471                      	BRNE	OVFUM										// No salta
+0001df 9100 0107                 	LDS		R16, DMES
+0001e1 3001                      	CPI		R16, 1										//Si es igual a 1
+0001e2 f471                      	BRNE	OVFUM										// No salta
                                  
                                  	//Incrementar unidades de mes cuando decenas es 1
-0001e2 9100 0106                 	LDS		R16, UMES
-0001e4 9503                      	INC		R16
-0001e5 9300 0106                 	STS		UMES, R16
-0001e7 3003                      	CPI		R16, 3										//El overflow ocurre en 2
-0001e8 f4b1                      	BRNE	RETORNF
+0001e3 9100 0106                 	LDS		R16, UMES
+0001e5 9503                      	INC		R16
+0001e6 9300 0106                 	STS		UMES, R16
+0001e8 3003                      	CPI		R16, 3										//El overflow ocurre en 2
+0001e9 f4b1                      	BRNE	RETORNF
                                  
                                  	//Aca pasaron todos lo meses del año.
                                  	//Resetear unidades y decenas de mes
-0001e9 e000                      	LDI		R16, 0x00
-0001ea 9300 0106                 	STS		UMES, R16
-0001ec 9300 0107                 	STS		DMES, R16
+0001ea e000                      	LDI		R16, 0x00
+0001eb 9300 0106                 	STS		UMES, R16
+0001ed 9300 0107                 	STS		DMES, R16
                                  
                                  	//Se reestablece la logica a la inicial
-0001ee e290                      	LDI		R25, 32
-0001ef e1af                      	LDI		R26, 31	
+0001ef e290                      	LDI		R25, 32
+0001f0 e1af                      	LDI		R26, 31	
                                  OVFUM:
                                  	//Incrementar unidades de mes cuando decenas es 0
-0001f0 9100 0106                 	LDS		R16, UMES
-0001f2 9503                      	INC		R16
-0001f3 9300 0106                 	STS		UMES, R16
-0001f5 300a                      	CPI		R16, 10
-0001f6 f441                      	BRNE	RETORNF										//Mientras no se igual a 10 salta
+0001f1 9100 0106                 	LDS		R16, UMES
+0001f3 9503                      	INC		R16
+0001f4 9300 0106                 	STS		UMES, R16
+0001f6 300a                      	CPI		R16, 10
+0001f7 f441                      	BRNE	RETORNF										//Mientras no se igual a 10 salta
                                  	
                                  	//Resetear unidades y aumentar decenas de mes
-0001f7 e000                      	LDI		R16, 0x00
-0001f8 9300 0106                 	STS		UMES, R16
-0001fa 9100 0107                 	LDS		R16, DMES
-0001fc 9503                      	INC		R16
-0001fd 9300 0107                 	STS		DMES, R16							
+0001f8 e000                      	LDI		R16, 0x00
+0001f9 9300 0106                 	STS		UMES, R16
+0001fb 9100 0107                 	LDS		R16, DMES
+0001fd 9503                      	INC		R16
+0001fe 9300 0107                 	STS		DMES, R16							
                                  RETORNF:
-0001ff 9508                      	RET
+000200 9508                      	RET
                                  /***************Logica para ovf de modo fecha***************/
                                  
                                  /***************Logica para incrementar configuración***************/
                                  INCREMENTAR: 
                                  	//Limpiar la bandera de incremento
-000200 e002                      	LDI		R16, 0x02									//LDI	R16, (1<<Incrementar)
-000201 2750                      	EOR		FLAGS_MP, R16
+000201 e002                      	LDI		R16, 0x02									//LDI	R16, (1<<Incrementar)
+000202 2750                      	EOR		FLAGS_MP, R16
                                  
-000202 fd53                      	SBRC	FLAGS_MP, 3									//UNIDEC ---> 1
-000203 e000                      	LDI		R16, 0x00									//Trabajar con minutos/mes
-000204 ff53                      	SBRS	FLAGS_MP, 3									//UNIDEC --> 0
-000205 e001                      	LDI		R16, 0x01									//Trabajar con horas/dias
-000206 3000                      	CPI		R16, 0x00
-000207 f439                      	BRNE	MINMES										//Si es diferente salta a MINMES
+000203 fd53                      	SBRC	FLAGS_MP, 3									//UNIDEC ---> 1
+000204 e000                      	LDI		R16, 0x00									//Trabajar con minutos/mes
+000205 ff53                      	SBRS	FLAGS_MP, 3									//UNIDEC --> 0
+000206 e001                      	LDI		R16, 0x01									//Trabajar con horas/dias
+000207 3000                      	CPI		R16, 0x00
+000208 f439                      	BRNE	MINMES										//Si es diferente salta a MINMES
                                  	
                                  	//Trabajar horas y dias
-000208 fd56                      	SBRC	FLAGS_MP, 6									//Si HORA --> 1 se trabajan con horas
-000209 940e 0216                 	CALL	INCHOUR
-00020b fd57                      	SBRC	FLAGS_MP, 7									//Si Fecha -->1 se trabaja con dias
-00020c 940e 0246                 	CALL	INCDAYS
-00020e 9508                      	RET
+000209 fd56                      	SBRC	FLAGS_MP, 6									//Si HORA --> 1 se trabajan con horas
+00020a 940e 0217                 	CALL	INCHOUR
+00020c fd57                      	SBRC	FLAGS_MP, 7									//Si Fecha -->1 se trabaja con dias
+00020d 940e 0247                 	CALL	INCDAYS
+00020f 9508                      	RET
                                  MINMES:
                                  	//Trabajar con minutos/mes
                                  	//Trabajar minitos y mese
-00020f fd56                      	SBRC	FLAGS_MP, 6									//Si HORA --> 1 se trabajan con min
-000210 940e 0231                 	CALL	INCMINS
-000212 fd57                      	SBRC	FLAGS_MP, 7									//Si Fecha -->1 se trabaja con meses
-000213 940e 026d                 	CALL	INCMES
-000215 9508                      	RET
+000210 fd56                      	SBRC	FLAGS_MP, 6									//Si HORA --> 1 se trabajan con min
+000211 940e 0232                 	CALL	INCMINS
+000213 fd57                      	SBRC	FLAGS_MP, 7									//Si Fecha -->1 se trabaja con meses
+000214 940e 026e                 	CALL	INCMES
+000216 9508                      	RET
                                  
                                  /**Logica para incrementar horas/mins**/
                                  INCHOUR:
-000216 e07a                      	LDI		LIMIT_OVF, 10								//Limite es 10
-000217 9100 0103                 	LDS		R16, DHOR
+000217 e07a                      	LDI		LIMIT_OVF, 10								//Limite es 10
+000218 9100 0103                 	LDS		R16, DHOR
                                  	//DE 1/0 OVFUD hasta 10 y cuando es 2 OVFUD hasta 4
-000219 3002                      	CPI		R16, 2
-00021a f409                      	BRNE	INCUHOUR
-00021b e074                      	LDI		LIMIT_OVF, 4										//limite es 4
+00021a 3002                      	CPI		R16, 2
+00021b f409                      	BRNE	INCUHOUR
+00021c e074                      	LDI		LIMIT_OVF, 4										//limite es 4
                                  INCUHOUR:
                                  	//Incrementar unidades
-00021c 9100 0102                 	LDS		R16, UHOR
-00021e 9503                      	INC		R16
-00021f 9300 0102                 	STS		UHOR, R16 
-000221 1707                      	CP		R16, LIMIT_OVF									//ovf de unidades de horas
-000222 f469                      	BRNE	R_INCH
+00021d 9100 0102                 	LDS		R16, UHOR
+00021f 9503                      	INC		R16
+000220 9300 0102                 	STS		UHOR, R16 
+000222 1707                      	CP		R16, LIMIT_OVF									//ovf de unidades de horas
+000223 f469                      	BRNE	R_INCH
                                  	//Reiniciar las unidades
-000223 e000                      	LDI		R16, 0x00			
-000224 9300 0102                 	STS		UHOR, R16
+000224 e000                      	LDI		R16, 0x00			
+000225 9300 0102                 	STS		UHOR, R16
                                  	//Incrementar decenas
-000226 9100 0103                 	LDS		R16, DHOR
-000228 9503                      	INC		R16
-000229 9300 0103                 	STS		DHOR, R16
-00022b 3003                      	CPI		R16, 3
-00022c f419                      	BRNE	R_INCH
+000227 9100 0103                 	LDS		R16, DHOR
+000229 9503                      	INC		R16
+00022a 9300 0103                 	STS		DHOR, R16
+00022c 3003                      	CPI		R16, 3
+00022d f419                      	BRNE	R_INCH
                                  	//Reiniciar el contador de decenas
-00022d e000                      	LDI		R16, 0x00
-00022e 9300 0103                 	STS		DHOR, R16
+00022e e000                      	LDI		R16, 0x00
+00022f 9300 0103                 	STS		DHOR, R16
                                  R_INCH:
-000230 9508                      	RET
+000231 9508                      	RET
                                  
                                  //logica para incrementar minutos
                                  INCMINS:
-000231 9100 0100                 	LDS		R16, UMIN									//Incrementar unidades
-000233 9503                      	INC		R16
-000234 9300 0100                 	STS		UMIN, R16
-000236 300a                      	CPI		R16, 10
-000237 f469                      	BRNE	R_INCM
-000238 e000                      	LDI		R16, 0x00									//Reinicar unidades
-000239 9300 0100                 	STS		UMIN, R16
-00023b 9100 0101                 	LDS		R16, DMIN									//Incrementar decenas
-00023d 9503                      	INC		R16
-00023e 9300 0101                 	STS		DMIN, R16
-000240 3006                      	CPI		R16, 6
-000241 f419                      	BRNE	R_INCM
-000242 e000                      	LDI		R16, 0x00									//Reiniciar decenas
-000243 9300 0101                 	STS		DMIN, R16
+000232 9100 0100                 	LDS		R16, UMIN									//Incrementar unidades
+000234 9503                      	INC		R16
+000235 9300 0100                 	STS		UMIN, R16
+000237 300a                      	CPI		R16, 10
+000238 f469                      	BRNE	R_INCM
+000239 e000                      	LDI		R16, 0x00									//Reinicar unidades
+00023a 9300 0100                 	STS		UMIN, R16
+00023c 9100 0101                 	LDS		R16, DMIN									//Incrementar decenas
+00023e 9503                      	INC		R16
+00023f 9300 0101                 	STS		DMIN, R16
+000241 3006                      	CPI		R16, 6
+000242 f419                      	BRNE	R_INCM
+000243 e000                      	LDI		R16, 0x00									//Reiniciar decenas
+000244 9300 0101                 	STS		DMIN, R16
                                  R_INCM:
-000245 9508                      	RET
+000246 9508                      	RET
                                  /**Logica para incrementar horas/mins**/
                                  
                                  /**Logica para incrementar meses/dias**/
                                  INCDAYS:
                                  	//Ver que la logica a usar dependende si estamos antes de agosto o despues
-000246 9100 0106                 	LDS		R16, UMES
-000248 3008                      	CPI		R16, 8										//Si es igual a 7 ir LOVF2
-000249 f411                      	BRNE	L0VF1										//mientra no sea igual a 7 ir LOVF1
+000247 9100 0106                 	LDS		R16, UMES
+000249 3008                      	CPI		R16, 8										//Si es igual a 7 ir LOVF2
+00024a f411                      	BRNE	L0VF1										//mientra no sea igual a 7 ir LOVF1
                                  L0VF2:
                                  	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 0
                                  	Los de 30 terminan en 1*/
-00024a e19f                      	LDI		R25, 31										//Se cambia la lógica
-00024b e2a0                      	LDI		R26, 32
+00024b e19f                      	LDI		R25, 31										//Se cambia la lógica
+00024c e2a0                      	LDI		R26, 32
                                  L0VF1:
                                  	//De enero (0x01) a Julio (0x07) los meses de 31 dias terminan en 1
                                  	//Los de 30 terminan en 0 excepto febrero.
-00024c fd00                      	SBRC	R16, 0										//Revisar si el mes termina en 0 o en 1
-00024d 2f79                      	MOV		LIMIT_OVF, R25								// 31
-00024e ff00                      	SBRS	R16, 0
-00024f 2f7a                      	MOV		LIMIT_OVF, R26								// 30
-000250 3002                      	CPI		R16, 2										//Mientras no sea febrero usar 30 o 31 como limite
-000251 f409                      	BRNE	INCUDAYS
-000252 e17d                      	LDI		LIMIT_OVF, 29
+00024d fd00                      	SBRC	R16, 0										//Revisar si el mes termina en 0 o en 1
+00024e 2f79                      	MOV		LIMIT_OVF, R25								// 31
+00024f ff00                      	SBRS	R16, 0
+000250 2f7a                      	MOV		LIMIT_OVF, R26								// 30
+000251 3002                      	CPI		R16, 2										//Mientras no sea febrero usar 30 o 31 como limite
+000252 f409                      	BRNE	INCUDAYS
+000253 e17d                      	LDI		LIMIT_OVF, 29
                                  INCUDAYS:
-000253 9583                      	INC		DIAS
-000254 1787                      	CP		DIAS, LIMIT_OVF
-000255 f081                      	BREQ	RUD											//Ir a reiniciar contador de dias
-000256 9100 0104                 	LDS		R16, UDIAS
-000258 9503                      	INC		R16									//Incrementar unidades de dias
-000259 9300 0104                 	STS		UDIAS, R16
-00025b 300a                      	CPI		R16, 10
-00025c f479                      	BRNE	R_INCD
-00025d e000                      	LDI		R16, 0x00								//Reiniciar unidades de dias
-00025e 9300 0104                 	STS		UDIAS, R16
-000260 9100 0105                 	LDS		R16, DDIAS								//Incrementar decenas de dias
-000262 9503                      	INC		R16
-000263 9300 0105                 	STS		DDIAS, R16	
-000265 c006                      	RJMP	R_INCD
+000254 9583                      	INC		DIAS
+000255 1787                      	CP		DIAS, LIMIT_OVF
+000256 f081                      	BREQ	RUD											//Ir a reiniciar contador de dias
+000257 9100 0104                 	LDS		R16, UDIAS
+000259 9503                      	INC		R16									//Incrementar unidades de dias
+00025a 9300 0104                 	STS		UDIAS, R16
+00025c 300a                      	CPI		R16, 10
+00025d f479                      	BRNE	R_INCD
+00025e e000                      	LDI		R16, 0x00								//Reiniciar unidades de dias
+00025f 9300 0104                 	STS		UDIAS, R16
+000261 9100 0105                 	LDS		R16, DDIAS								//Incrementar decenas de dias
+000263 9503                      	INC		R16
+000264 9300 0105                 	STS		DDIAS, R16	
+000266 c006                      	RJMP	R_INCD
                                  RUD:
-000266 e080                      	LDI		DIAS, 0x00
-000267 9380 0105                 	STS		DDIAS, DIAS
-000269 e081                      	LDI		DIAS, 0x01
-00026a 9380 0104                 	STS		UDIAS, DIAS
+000267 e080                      	LDI		DIAS, 0x00
+000268 9380 0105                 	STS		DDIAS, DIAS
+00026a e081                      	LDI		DIAS, 0x01
+00026b 9380 0104                 	STS		UDIAS, DIAS
                                  R_INCD:
-00026c 9508                      	RET
+00026d 9508                      	RET
                                  
                                  INCMES:
-00026d 9100 0107                 	LDS		R16, DMES
-00026f 3000                      	CPI		R16, 0x00
-000270 f481                      	BRNE	INCDM
-000271 9100 0106                 	LDS		R16, UMES								//Incrementar unidades 
-000273 9503                      	INC		R16
-000274 9300 0106                 	STS		UMES, R16
-000276 300a                      	CPI		R16, 10
-000277 f669                      	BRNE	R_INCM
-000278 e000                      	LDI		R16, 0x00								//Reinciar las unidades
-000279 9300 0106                 	STS		UMES, R16
-00027b 9100 0107                 	LDS		R16, DMES								//Incrementar las decenas
-00027d 9503                      	INC		R16
-00027e 9300 0107                 	STS		DMES, R16	
-000280 cfc4                      	RJMP	R_INCM
+00026e 9100 0107                 	LDS		R16, DMES
+000270 3000                      	CPI		R16, 0x00
+000271 f481                      	BRNE	INCDM
+000272 9100 0106                 	LDS		R16, UMES								//Incrementar unidades 
+000274 9503                      	INC		R16
+000275 9300 0106                 	STS		UMES, R16
+000277 300a                      	CPI		R16, 10
+000278 f669                      	BRNE	R_INCM
+000279 e000                      	LDI		R16, 0x00								//Reinciar las unidades
+00027a 9300 0106                 	STS		UMES, R16
+00027c 9100 0107                 	LDS		R16, DMES								//Incrementar las decenas
+00027e 9503                      	INC		R16
+00027f 9300 0107                 	STS		DMES, R16	
+000281 cfc4                      	RJMP	R_INCM
                                  INCDM:
-000281 9100 0106                 	LDS		R16, UMES								//Incrementar unidades 
-000283 9503                      	INC		R16
-000284 9300 0106                 	STS		UMES, R16
-000286 3003                      	CPI		R16,	3								//Ahora el overflow se hace en 2
-000287 f431                      	BRNE	R_INCME
-000288 e001                      	LDI		R16, 0x01								//Resetear unidades
-000289 9300 0106                 	STS		UMES, R16
-00028b e000                      	LDI		R16, 0x00								//Reinciar las decenas
-00028c 9300 0107                 	STS		DMES, R16
+000282 9100 0106                 	LDS		R16, UMES								//Incrementar unidades 
+000284 9503                      	INC		R16
+000285 9300 0106                 	STS		UMES, R16
+000287 3003                      	CPI		R16,	3								//Ahora el overflow se hace en 2
+000288 f431                      	BRNE	R_INCME
+000289 e001                      	LDI		R16, 0x01								//Resetear unidades
+00028a 9300 0106                 	STS		UMES, R16
+00028c e000                      	LDI		R16, 0x00								//Reinciar las decenas
+00028d 9300 0107                 	STS		DMES, R16
                                  R_INCME:
-00028e 9508                      	RET
+00028f 9508                      	RET
                                  
                                  /***************Logica para incrementar***************/
                                  
                                  /***************Logica para decrementar***************/
                                  DECREMENTAR:
                                  	//Limpiar la bandera de incremento
-00028f e004                      	LDI		R16, 0x04									//LDI	R16, (1<<Decrementar)
-000290 2750                      	EOR		FLAGS_MP, R16
+000290 e004                      	LDI		R16, 0x04									//LDI	R16, (1<<Decrementar)
+000291 2750                      	EOR		FLAGS_MP, R16
                                  
                                  	//Configurar las de horas/dias - minutos/mes
-000291 fd53                      	SBRC	FLAGS_MP, 3									//UNIDEC ---> 1
-000292 e000                      	LDI		R16, 0x00									//Trabajar con minutos/mes
-000293 ff53                      	SBRS	FLAGS_MP, 3									//UNIDEC --> 0
-000294 e001                      	LDI		R16, 0x01									//Trabajar con horas/dias
-000295 3000                      	CPI		R16, 0x00
-000296 f439                      	BRNE	MINMESD										//Si es diferente salta a MINMES
+000292 fd53                      	SBRC	FLAGS_MP, 3									//UNIDEC ---> 1
+000293 e000                      	LDI		R16, 0x00									//Trabajar con minutos/mes
+000294 ff53                      	SBRS	FLAGS_MP, 3									//UNIDEC --> 0
+000295 e001                      	LDI		R16, 0x01									//Trabajar con horas/dias
+000296 3000                      	CPI		R16, 0x00
+000297 f439                      	BRNE	MINMESD										//Si es diferente salta a MINMES
                                  	
                                  	//Trabajar horas y dias
-000297 fd56                      	SBRC	FLAGS_MP, 6									//Si HORA --> 1 se trabajan con horas
-000298 940e 02a5                 	CALL	DECHOUR
-00029a fd57                      	SBRC	FLAGS_MP, 7									//Si Fecha -->1 se trabaja con dias
-00029b 940e 0300                 	CALL	DECDAYS
-00029d 9508                      	RET
+000298 fd56                      	SBRC	FLAGS_MP, 6									//Si HORA --> 1 se trabajan con horas
+000299 940e 02a6                 	CALL	DECHOUR
+00029b fd57                      	SBRC	FLAGS_MP, 7									//Si Fecha -->1 se trabaja con dias
+00029c 940e 0301                 	CALL	DECDAYS
+00029e 9508                      	RET
                                  MINMESD:
                                  	//Trabajar con minutos/mes
-00029e fd56                      	SBRC	FLAGS_MP, 6									//Si HORA --> 1 se trabajan con min
-00029f 940e 02c5                 	CALL	DECMINS
-0002a1 fd57                      	SBRC	FLAGS_MP, 7									//Si Fecha -->1 se trabaja con meses
-0002a2 940e 02dc                 	CALL	DECMES
-0002a4 9508                      	RET
+00029f fd56                      	SBRC	FLAGS_MP, 6									//Si HORA --> 1 se trabajan con min
+0002a0 940e 02c6                 	CALL	DECMINS
+0002a2 fd57                      	SBRC	FLAGS_MP, 7									//Si Fecha -->1 se trabaja con meses
+0002a3 940e 02dd                 	CALL	DECMES
+0002a5 9508                      	RET
                                  
                                  //Subrutinas de decremento
                                  DECHOUR:
-0002a5 9100 0103                 	LDS		R16, DHOR								//Comparar si las decenas son 0
-0002a7 3000                      	CPI		R16, 0
-0002a8 f459                      	BRNE	UNDFUH										//Mientras se diferente a 0 el undf de la unidades es en 9
+0002a6 9100 0103                 	LDS		R16, DHOR								//Comparar si las decenas son 0
+0002a8 3000                      	CPI		R16, 0
+0002a9 f459                      	BRNE	UNDFUH										//Mientras se diferente a 0 el undf de la unidades es en 9
                                  	
                                  	//Decrementar unidades de hora
-0002a9 9100 0102                 	LDS		R16, UHOR
-0002ab 3000                      	CPI		R16, 0									//El underflow lo hara a 4 si llega a cero
-0002ac f439                      	BRNE	UNDFUH
+0002aa 9100 0102                 	LDS		R16, UHOR
+0002ac 3000                      	CPI		R16, 0									//El underflow lo hara a 4 si llega a cero
+0002ad f439                      	BRNE	UNDFUH
                                  	//UNDERFLOW DE DIA
-0002ad e003                      	LDI		R16, 3
-0002ae 9300 0102                 	STS		UHOR, R16
-0002b0 e002                      	LDI		R16, 2
-0002b1 9300 0103                 	STS		DHOR, R16
-0002b3 9508                      	RET
+0002ae e003                      	LDI		R16, 3
+0002af 9300 0102                 	STS		UHOR, R16
+0002b1 e002                      	LDI		R16, 2
+0002b2 9300 0103                 	STS		DHOR, R16
+0002b4 9508                      	RET
                                  UNDFUH:
                                  	//Decrementar unidades de hora
-0002b4 9100 0102                 	LDS		R16, UHOR
-0002b6 3000                      	CPI		R16, 0									//El underflow lo hara a 9 si llega a cero
-0002b7 f021                      	BREQ	UNDFUDH
+0002b5 9100 0102                 	LDS		R16, UHOR
+0002b7 3000                      	CPI		R16, 0									//El underflow lo hara a 9 si llega a cero
+0002b8 f021                      	BREQ	UNDFUDH
                                  	//Decrementar las unidades horas
-0002b8 950a                      	DEC		R16
-0002b9 9300 0102                 	STS		UHOR, R16
-0002bb 9508                      	RET
+0002b9 950a                      	DEC		R16
+0002ba 9300 0102                 	STS		UHOR, R16
+0002bc 9508                      	RET
                                  UNDFUDH:
-0002bc e009                      	LDI		R16, 9
-0002bd 9300 0102                 	STS		UHOR, R16
+0002bd e009                      	LDI		R16, 9
+0002be 9300 0102                 	STS		UHOR, R16
                                  	//Decrementar decenas de horas
-0002bf 9100 0103                 	LDS		R16, DHOR
-0002c1 950a                      	DEC		R16
-0002c2 9300 0103                 	STS		DHOR, R16	
+0002c0 9100 0103                 	LDS		R16, DHOR
+0002c2 950a                      	DEC		R16
+0002c3 9300 0103                 	STS		DHOR, R16	
                                  R_DH:
-0002c4 9508                      	RET
+0002c5 9508                      	RET
                                  //Rutina de decrementacion de minutos
                                  DECMINS:
-0002c5 9100 0100                 	LDS		R16, UMIN
-0002c7 3000                      	CPI		R16, 0
-0002c8 f021                      	BREQ	UNDFUMI
-0002c9 950a                      	DEC		R16									//Decrementar unidades de minutO
-0002ca 9300 0100                 	STS		UMIN, R16
-0002cc 9508                      	RET
+0002c6 9100 0100                 	LDS		R16, UMIN
+0002c8 3000                      	CPI		R16, 0
+0002c9 f021                      	BREQ	UNDFUMI
+0002ca 950a                      	DEC		R16									//Decrementar unidades de minutO
+0002cb 9300 0100                 	STS		UMIN, R16
+0002cd 9508                      	RET
                                  UNDFUMI:
-0002cd e009                      	LDI		R16, 9									//Reiniciar en 9 las unidades de minito
-0002ce 9300 0100                 	STS		UMIN, R16
-0002d0 9100 0101                 	LDS		R16, DMIN
-0002d2 3000                      	CPI		R16, 0	
-0002d3 f021                      	BREQ	UNDFDMI			
-0002d4 950a                      	DEC		R16									//Decrementar horas de minuto
-0002d5 9300 0101                 	STS		DMIN, R16
-0002d7 9508                      	RET
+0002ce e009                      	LDI		R16, 9									//Reiniciar en 9 las unidades de minito
+0002cf 9300 0100                 	STS		UMIN, R16
+0002d1 9100 0101                 	LDS		R16, DMIN
+0002d3 3000                      	CPI		R16, 0	
+0002d4 f021                      	BREQ	UNDFDMI			
+0002d5 950a                      	DEC		R16									//Decrementar horas de minuto
+0002d6 9300 0101                 	STS		DMIN, R16
+0002d8 9508                      	RET
                                  UNDFDMI:
-0002d8 e005                      	LDI		R16, 5									//Reiniciar las decenas de minuto a 5
-0002d9 9300 0101                 	STS		DMIN, R16
-0002db 9508                      	RET
+0002d9 e005                      	LDI		R16, 5									//Reiniciar las decenas de minuto a 5
+0002da 9300 0101                 	STS		DMIN, R16
+0002dc 9508                      	RET
                                  
                                  DECMES:
-0002dc 9100 0107                 	LDS		R16, DMES
-0002de 3000                      	CPI		R16, 0
-0002df f479                      	BRNE	UNDFUME
-0002e0 9100 0106                 	LDS		R16, UMES								//Underflow de unidades de mes 					
-0002e2 3001                      	CPI		R16, 1
-0002e3 f021                      	BREQ	UNDFDME
-0002e4 950a                      	DEC		R16									//Decrementar unidades de mes
-0002e5 9300 0106                 	STS		UMES, R16	
-0002e7 9508                      	RET
+0002dd 9100 0107                 	LDS		R16, DMES
+0002df 3000                      	CPI		R16, 0
+0002e0 f479                      	BRNE	UNDFUME
+0002e1 9100 0106                 	LDS		R16, UMES								//Underflow de unidades de mes 					
+0002e3 3001                      	CPI		R16, 1
+0002e4 f021                      	BREQ	UNDFDME
+0002e5 950a                      	DEC		R16									//Decrementar unidades de mes
+0002e6 9300 0106                 	STS		UMES, R16	
+0002e8 9508                      	RET
                                  UNDFDME:
-0002e8 e002                      	LDI		R16, 2
-0002e9 9300 0106                 	STS		UMES, R16
-0002eb e001                      	LDI		R16, 1
-0002ec 9300 0107                 	STS		DMES, R16
-0002ee 9508                      	RET													
+0002e9 e002                      	LDI		R16, 2
+0002ea 9300 0106                 	STS		UMES, R16
+0002ec e001                      	LDI		R16, 1
+0002ed 9300 0107                 	STS		DMES, R16
+0002ef 9508                      	RET													
                                  UNDFUME:
-0002ef 9100 0106                 	LDS		R16, UMES								//Underflow de unidades de mes 					
-0002f1 3000                      	CPI		R16, 0
-0002f2 f021                      	BREQ	UNDFDME2
-0002f3 950a                      	DEC		R16									//Decrementar unidades de mes
-0002f4 9300 0106                 	STS		UMES, R16
-0002f6 9508                      	RET
+0002f0 9100 0106                 	LDS		R16, UMES								//Underflow de unidades de mes 					
+0002f2 3000                      	CPI		R16, 0
+0002f3 f021                      	BREQ	UNDFDME2
+0002f4 950a                      	DEC		R16									//Decrementar unidades de mes
+0002f5 9300 0106                 	STS		UMES, R16
+0002f7 9508                      	RET
                                  UNDFDME2:
-0002f7 e009                      	LDI		R16, 9									//Resetear unidades a 0
-0002f8 9300 0106                 	STS		UMES, R16
-0002fa 9100 0107                 	LDS		R16, DMES								//Decrementar decenas de mes
-0002fc 950a                      	DEC		R16
-0002fd 9300 0107                 	STS		DMES, R16
-0002ff 9508                      	RET
+0002f8 e009                      	LDI		R16, 9									//Resetear unidades a 0
+0002f9 9300 0106                 	STS		UMES, R16
+0002fb 9100 0107                 	LDS		R16, DMES								//Decrementar decenas de mes
+0002fd 950a                      	DEC		R16
+0002fe 9300 0107                 	STS		DMES, R16
+000300 9508                      	RET
                                  
                                  DECDAYS:
                                  	//Ver que la logica a usar dependende si estamos antes de agosto o despues
-000300 9100 0106                 	LDS		R16, UMES
-000302 3008                      	CPI		R16, 8										//Si es igual a 7 ir LOVF2
-000303 f411                      	BRNE	LUNDF1										//mientra no sea igual a 7 ir LOVF1
+000301 9100 0106                 	LDS		R16, UMES
+000303 3008                      	CPI		R16, 8										//Si es igual a 7 ir LOVF2
+000304 f411                      	BRNE	LUNDF1										//mientra no sea igual a 7 ir LOVF1
                                  LUNDF2:
                                  	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 0
                                  	Los de 30 terminan en 1*/
-000304 e19f                      	LDI		R25, 31										//Se cambia la lógica
-000305 e2a0                      	LDI		R26, 32
+000305 e19f                      	LDI		R25, 31										//Se cambia la lógica
+000306 e2a0                      	LDI		R26, 32
                                  LUNDF1:
                                  	//De enero (0x01) a Julio (0x07) los meses de 31 dias terminan en 1
                                  	//Los de 30 terminan en 0 excepto febrero.
-000306 fd00                      	SBRC	R16, 0										//Revisar si el mes termina en 0 o en 1
-000307 2f79                      	MOV		LIMIT_OVF, R25								// 31
-000308 ff00                      	SBRS	R16, 0
-000309 2f7a                      	MOV		LIMIT_OVF, R26								// 30
-00030a 3002                      	CPI		R16, 2										//Mientras no sea febrero usar 30 o 31 como limite
-00030b f409                      	BRNE	SALTO
-00030c e17d                      	LDI		LIMIT_OVF, 29
+000307 fd00                      	SBRC	R16, 0										//Revisar si el mes termina en 0 o en 1
+000308 2f79                      	MOV		LIMIT_OVF, R25								// 31
+000309 ff00                      	SBRS	R16, 0
+00030a 2f7a                      	MOV		LIMIT_OVF, R26								// 30
+00030b 3002                      	CPI		R16, 2										//Mientras no sea febrero usar 30 o 31 como limite
+00030c f409                      	BRNE	SALTO
+00030d e17d                      	LDI		LIMIT_OVF, 29
                                  SALTO:
-00030d 3081                      	CPI		DIAS, 1
-00030e f4c1                      	BRNE	DECUD										//Decrementar Dias
+00030e 3081                      	CPI		DIAS, 1
+00030f f4c1                      	BRNE	DECUD										//Decrementar Dias
                                  	//Lógica de underflow de dias
                                  	
                                  	//Reiniciar los dias dependiendo del mes en el que estamos
-00030f fd75                      	SBRC	LIMIT_OVF, 5	
-000310 e18f                      	LDI		DIAS, 31								
-000311 ff75                      	SBRS	LIMIT_OVF, 5
-000312 e18e                      	LDI		DIAS, 30		
-000313 317d                      	CPI		LIMIT_OVF, 29								//Mientras estemos en febrero se cambiara la lógica
-000314 f441                      	BRNE	UNDFDD
-000315 e18c                      	LDI		DIAS, 28
-000316 e008                      	LDI		R16, 8									//Realizar el underflow especial para febrero.
-000317 9300 0104                 	STS		UDIAS, R16
-000319 e002                      	LDI		R16, 2
-00031a 9300 0105                 	STS		DDIAS, R16
-00031c 9508                      	RET 
+000310 fd75                      	SBRC	LIMIT_OVF, 5	
+000311 e18f                      	LDI		DIAS, 31								
+000312 ff75                      	SBRS	LIMIT_OVF, 5
+000313 e18e                      	LDI		DIAS, 30		
+000314 317d                      	CPI		LIMIT_OVF, 29								//Mientras estemos en febrero se cambiara la lógica
+000315 f441                      	BRNE	UNDFDD
+000316 e18c                      	LDI		DIAS, 28
+000317 e008                      	LDI		R16, 8									//Realizar el underflow especial para febrero.
+000318 9300 0104                 	STS		UDIAS, R16
+00031a e002                      	LDI		R16, 2
+00031b 9300 0105                 	STS		DDIAS, R16
+00031d 9508                      	RET 
                                  UNDFDD:	
-00031d e003                      	LDI		R16, 3									//Las decenas siempre se resetean en 3
-00031e 9300 0105                 	STS		DDIAS, R16
-000320 ff75                      	SBRS	LIMIT_OVF, 5								//Salta si Limit_ovf --> 0010 0000 = 32
-000321 e000                      	LDI		R16, 0								
-000322 fd75                      	SBRC	LIMIT_OVF, 5								//Salta si LIMIT_OVF --> 0001 1111 = 31
-000323 e001                      	LDI		R16, 1
-000324 9300 0104                 	STS		UDIAS, R16
-000326 9508                      	RET
+00031e e003                      	LDI		R16, 3									//Las decenas siempre se resetean en 3
+00031f 9300 0105                 	STS		DDIAS, R16
+000321 ff75                      	SBRS	LIMIT_OVF, 5								//Salta si Limit_ovf --> 0010 0000 = 32
+000322 e000                      	LDI		R16, 0								
+000323 fd75                      	SBRC	LIMIT_OVF, 5								//Salta si LIMIT_OVF --> 0001 1111 = 31
+000324 e001                      	LDI		R16, 1
+000325 9300 0104                 	STS		UDIAS, R16
+000327 9508                      	RET
                                  DECUD:
-000327 958a                      	DEC		DIAS
-000328 9100 0104                 	LDS		R16, UDIAS
-00032a 3000                      	CPI		R16, 0									//Underflow de unidades normal
-00032b f021                      	BREQ	UNDFUD
-00032c 950a                      	DEC		R16									//Decrementar unidades de dias
-00032d 9300 0104                 	STS		UDIAS, R16
-00032f 9508                      	RET
+000328 958a                      	DEC		DIAS
+000329 9100 0104                 	LDS		R16, UDIAS
+00032b 3000                      	CPI		R16, 0									//Underflow de unidades normal
+00032c f021                      	BREQ	UNDFUD
+00032d 950a                      	DEC		R16									//Decrementar unidades de dias
+00032e 9300 0104                 	STS		UDIAS, R16
+000330 9508                      	RET
                                  UNDFUD:
-000330 e009                      	LDI		R16, 9									//Setear las unidades de dias en 9
-000331 9300 0104                 	STS		UDIAS, R16
-000333 9100 0105                 	LDS		R16, DDIAS								//Decrementar decenas de dias
-000335 950a                      	DEC		R16
-000336 9300 0105                 	STS		DDIAS, R16
-000338 9508                      	RET
+000331 e009                      	LDI		R16, 9									//Setear las unidades de dias en 9
+000332 9300 0104                 	STS		UDIAS, R16
+000334 9100 0105                 	LDS		R16, DDIAS								//Decrementar decenas de dias
+000336 950a                      	DEC		R16
+000337 9300 0105                 	STS		DDIAS, R16
+000339 9508                      	RET
                                  /***************Logica para decrementar***************/
                                  
                                  
@@ -2062,15 +2066,15 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
                                  
                                  // Tabla de conversion hexadecimal a 7 segmentos
                                  TABLA:
-000339 81f3
-00033a e9ea
-00033b 7999
-00033c c17b
-00033d f9fb                          .DB 0xF3, 0x81, 0xEA, 0xE9, 0x99, 0x79, 0x7B, 0xC1, 0xFB, 0xF9
+00033a 81f3
+00033b e9ea
+00033c 7999
+00033d c17b
+00033e f9fb                          .DB 0xF3, 0x81, 0xEA, 0xE9, 0x99, 0x79, 0x7B, 0xC1, 0xFB, 0xF9
                                  
                                  TABLA2:
-00033e 81f3
-00033f e5e6
+00033f 81f3
+000340 e5e6
 
 
 RESOURCE USE INFORMATION
@@ -2109,9 +2113,9 @@ fmulsu:   0 icall :   0 ijmp  :   0 in    :   5 inc   :  22 jmp   :   0
 ld    :   0 ldd   :   0 ldi   : 124 lds   :  48 lpm   :   8 lsl   :   0 
 lsr   :   0 mov   :   8 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
 neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  19 pop   :   6 
-push  :   6 rcall :   0 ret   :  29 reti  :   3 rjmp  :  17 rol   :   0 
+push  :   6 rcall :   0 ret   :  29 reti  :   3 rjmp  :  18 rol   :   0 
 ror   :   0 sbc   :   0 sbci  :   0 sbi   :  13 sbic  :   0 sbis  :   0 
-sbiw  :   0 sbr   :   0 sbrc  :  46 sbrs  :  19 sec   :   0 seh   :   0 
+sbiw  :   0 sbr   :   0 sbrc  :  45 sbrs  :  20 sec   :   0 seh   :   0 
 sei   :   1 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
 sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :  84 
 sub   :   0 subi  :   0 swap  :   0 tst   :   0 wdr   :   0 
@@ -2120,7 +2124,7 @@ Instructions used: 28 out of 113 (24.8%)
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x000682   1592     16   1608   32768   4.9%
+[.cseg] 0x000000 0x000684   1594     16   1610   32768   4.9%
 [.dseg] 0x000100 0x000108      0      8      8    2048   0.4%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 

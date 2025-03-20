@@ -452,9 +452,9 @@ MOV_POINTER2:
 //********Banderas de parpadeo encender********//
 FLAG_DISP:
 	SBRC	FLAGS_MP, 3								//Salta si UNIDEC --> 0
-	LDI		R16, 0x04								//LDI	R16, (1<<FDISP23)
+	LDI		R16, 0x0C								//LDI	R16, (1<<FDISP23)
 	SBRS	FLAGS_MP, 3								//Salta si UNIDEC --> 1
-	LDI		R16, 0x02								//LDI	R16, (1<<FDISP01)
+	LDI		R16, 0x0A								//LDI	R16, (1<<FDISP01)
 	EOR		FLAGS_MP1, R16
 	RET
 //********Banderas de parpadeo encender********//
@@ -467,9 +467,10 @@ DISPLAY3:
 	LDS		R16, UMIN
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar unidades mes
 	LDS		R16, UMES
+
 	CALL	MOV_POINTER
+
 	OUT		PORTD, DISPLAY
-	SBRC	FLAGS_MP1, 1							//Salta si FDISP01
 	SBI		PORTB, 3
 	CALL	DELAY
 	CBI		PORTB, 3
@@ -495,8 +496,11 @@ DISPLAY1:
 	CALL	MOV_POINTER
 	//Parpadeo de punto
 	LDI		R27, 0x04									// LDI	DISPLAY, (1<<PT)
+	SBRS	FLAGS_MP1, 3								//Salta si FLASH --> 1
+	RJMP	FLASH1
 	SBRC	FLAGS_MP1, 1								//Salta si FDISP01 --> 0
 	LPM		R27, Z
+FLASH1:
 	MOV		R16, R27									// LDI	DISPLAY, (1<<PT)
 	SBRC	FLAGS_MP1, 0								//Salta si FLED es 0
 	EOR		DISPLAY, R16								//Encender el punto display 2 (volteado)s
