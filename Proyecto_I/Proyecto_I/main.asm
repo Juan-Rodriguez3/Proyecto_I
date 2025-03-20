@@ -297,15 +297,19 @@ CONFI_HORA:
 	SBRC	FLAGS_MP, 7
 	EOR		FLAGS_MP, R16
 
-	//Unidades o decenas
-
+	//Setear Banderas de seleccion de parejas de display
+	CALL	FLAG_DISP
 
 	//Incrementar o decrementar
 	SBRC	FLAGS_MP, 1								// Si Incrementar --> 1 incrementar
 	CALL	INCREMENTAR
 	SBRC	FLAGS_MP, 2								//Si Decrementar --> 1 decrementar
 	CALL	DECREMENTAR
-	CALL	MULTIPLEX											
+	CALL	MULTIPLEX	
+	
+	//Clear Banderas de seleccion de parejas de display
+	CALL	FLAG_DISP
+											
 	RJMP	MAIN									
 													
 CONFI_FECHA:	
@@ -365,12 +369,12 @@ ISR_TIMER0:
 
 	LDI		R16, T0VALUE
 	OUT		TCNT0, R16									//establecer el valor inicial a TCNT0 para interrumpir cada 10ms
-
+	
 	INC		CONTAD0R
 	CPI		CONTAD0R, 2									//Cada interrupcion es 0.25 s si contador=2 pasaron 0.5 s
 	BRNE	RETORN0
 	LDI		CONTAD0R, 0x00								//Reinciar el contad0r
-	LDI		R16, 0x08									//LDI	R16, (1<<FLED)
+	LDI		R16, 0x01									//LDI	R16, (1<<FLED)
 	EOR		FLAGS_MP1, R16
 RETORN0:
 	POP		R16
@@ -435,55 +439,80 @@ MOV_POINTER2:
 	ADD		ZL, R16										//Se incrementa la parte baja
 	ADC		ZH, R1										//Se suma 0 y el carro de la parte baja	
 	LPM		DISPLAY, Z
-	LDI		R16, 0x08									// LDI	DISPLAY, (1<<PT)
-	SBRC	FLAGS_MP1, 3								//Salta si FLED es 0
+	LDI		R27, 0x08
+
+
+	MOV		R16, R27									// LDI	DISPLAY, (1<<PT) 0x08
+	SBRC	FLAGS_MP1, 0								//Salta si FLED es 0
 	EOR		DISPLAY, R16								//Encender el punto display 2 (volteado)s*/
 	OUT		PORTD, DISPLAY 
 	RET
 /***************Mover los punteros***************/
 
+//********Banderas de parpadeo encender********//
+FLAG_DISP:
+	SBRC	FLAGS_MP, 3								//Salta si UNIDEC --> 0
+	LDI		R16, 0x04								//LDI	R16, (1<<FDISP23)
+	SBRS	FLAGS_MP, 3								//Salta si UNIDEC --> 1
+	LDI		R16, 0x02								//LDI	R16, (1<<FDISP01)
+	EOR		FLAGS_MP1, R16
+	RET
+//********Banderas de parpadeo encender********//
+
 /***************Multiplexeo para fechas***************/
 MULTIPLEX:
 	//Unidades de minutos/MES	Display 3
+DISPLAY3:
 	SBRC	FLAGS_MP, 6								// HORA --> 1 usar unidades de minuto
 	LDS		R16, UMIN
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar unidades mes
 	LDS		R16, UMES
 	CALL	MOV_POINTER
 	OUT		PORTD, DISPLAY
+	SBRC	FLAGS_MP1, 1							//Salta si FDISP01
 	SBI		PORTB, 3
 	CALL	DELAY
 	CBI		PORTB, 3
 
 	//Decenas de minutos/MES Display 2
-	SBRC	FLAGS_MP, 6								// HORA --> 1 usar decenas de minuto
+DISPLAY2:
+	SBRC	FLAGS_MP, 6									// HORA --> 1 usar decenas de minuto
 	LDS		R16, DMIN
-	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar decenas mes
-	LDS		R16, DMES
+	SBRC	FLAGS_MP, 7									// FECHA --> 1 usar decenas mes
+	LDS		R16, DMES	
+
 	CALL	MOV_POINTER2
 	SBI		PORTB, 2
 	CALL	DELAY
 	CBI		PORTB, 2
 
 	//Unidades de horas/dias Display1
-	SBRC	FLAGS_MP, 6								// HORA --> 1 usar unidades de horas
+DISPLAY1:
+	SBRC	FLAGS_MP, 6									// HORA --> 1 usar unidades de horas
 	LDS		R16, UHOR
-	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar Unidades de dias
+	SBRC	FLAGS_MP, 7									// FECHA --> 1 usar Unidades de dias
 	LDS		R16, UDIAS
 	CALL	MOV_POINTER
-	LDI		R16, 0x04									// LDI	DISPLAY, (1<<PT)
-	SBRC	FLAGS_MP1, 3								//Salta si FLED es 0
+	//Parpadeo de punto
+	LDI		R27, 0x04									// LDI	DISPLAY, (1<<PT)
+	SBRC	FLAGS_MP1, 1								//Salta si FDISP01 --> 0
+	LPM		R27, Z
+	MOV		R16, R27									// LDI	DISPLAY, (1<<PT)
+	SBRC	FLAGS_MP1, 0								//Salta si FLED es 0
 	EOR		DISPLAY, R16								//Encender el punto display 2 (volteado)s
+
 	OUT		PORTD, DISPLAY
 	SBI		PORTB, 1
 	CALL	DELAY
 	CBI		PORTB, 1
 
 	//Decenas de horas/dias Display0
+DISPLAY0:
 	SBRC	FLAGS_MP, 6								// HORA --> 1 usar decenas de hpras
 	LDS		R16, DHOR
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar decenas dias
 	LDS		R16, DDIAS
+
 	CALL	MOV_POINTER
 	OUT		PORTD, DISPLAY
 	SBI		PORTB, 0
@@ -818,6 +847,7 @@ R_INCME:
 
 /***************Logica para incrementar***************/
 
+/***************Logica para decrementar***************/
 DECREMENTAR:
 	//Limpiar la bandera de incremento
 	LDI		R16, 0x04									//LDI	R16, (1<<Decrementar)
@@ -994,7 +1024,7 @@ UNDFUD:
 	DEC		R16
 	STS		DDIAS, R16
 	RET
-
+/***************Logica para decrementar***************/
 
 
 //********Subrutinas**********
