@@ -15,8 +15,8 @@
 .def	CONTAD0R=R18						//PUERTO C
 .def	DISPLAY=R19							//PUERTO D
 .def	FLAG_STATE=R20						//Bandera de Modos	
-.def	FLAGS_MP=R21
-.def	FLAGS_MP1=R22						//Bandera Multiproposito
+.def	FLAGS_MP=R21						//Bandera Multiproposito 0
+.def	FLAGS_MP1=R22						//Bandera Multiproposito 1
 .def	LIMIT_OVF=R23						//Contador de dias y meses
 .def	DIAS=R24							//Contador de dias y meses
 .equ	T1VALUE= 64558						//Valor inicial para la interrupcion de 60 seg
@@ -298,22 +298,16 @@ CONFI_HORA:
 	SBRC	FLAGS_MP, 7
 	EOR		FLAGS_MP, R16
 
-	//Limpiar las banderas FDISP01 y FDISP23
-	LDI		R16, 0x06								//LDI	R16, (1<<FDISP01) | (1<<FDISP23)
-	EOR		FLAGS_MP1, R16
-
-	//Setear Banderas de seleccion de parejas de display
-	CALL	FLAG_DISP
 
 	//Incrementar o decrementar
 	SBRC	FLAGS_MP, 1								// Si Incrementar --> 1 incrementar
 	CALL	INCREMENTAR
 	SBRC	FLAGS_MP, 2								//Si Decrementar --> 1 decrementar
 	CALL	DECREMENTAR
-	CALL	MULTIPLEX	
+	CALL	MULTIPLEX		
 	
 	
-											
+						
 	RJMP	MAIN									
 													
 CONFI_FECHA:	
@@ -443,25 +437,14 @@ MOV_POINTER2:
 	ADD		ZL, R16										//Se incrementa la parte baja
 	ADC		ZH, R1										//Se suma 0 y el carro de la parte baja	
 	LPM		DISPLAY, Z
-	LDI		R27, 0x08
-
-
-	MOV		R16, R27									// LDI	DISPLAY, (1<<PT) 0x08
+	LDI		R16, 0x08										// LDI	DISPLAY, (1<<PT) 0x08
 	SBRC	FLAGS_MP1, 0								//Salta si FLED es 0
 	EOR		DISPLAY, R16								//Encender el punto display 2 (volteado)s*/
 	OUT		PORTD, DISPLAY 
 	RET
 /***************Mover los punteros***************/
 
-//********Banderas de parpadeo encender********//
-FLAG_DISP:
-	SBRC	FLAGS_MP, 3								//Salta si UNIDEC --> 0
-	LDI		R16, 0x0C								//LDI	R16, (1<<FDISP23)
-	SBRS	FLAGS_MP, 3								//Salta si UNIDEC --> 1
-	LDI		R16, 0x0A								//LDI	R16, (1<<FDISP01)
-	EOR		FLAGS_MP1, R16
-	RET
-//********Banderas de parpadeo encender********//
+
 
 /***************Multiplexeo para fechas***************/
 MULTIPLEX:
@@ -499,18 +482,9 @@ DISPLAY1:
 	LDS		R16, UDIAS
 	CALL	MOV_POINTER
 	//Parpadeo de punto
-	LDI		R27, 0x04									// LDI	DISPLAY, (1<<PT)
-	SBRS	FLAGS_MP1, 3								//Salta si FLASH --> 1
-	RJMP	FLASH1
-	SBRC	FLAGS_MP1, 1								//Salta si FDISP01 --> 0
-	LPM		R27, Z
-	LDI		R16, 0x04
-	EOR		R27, R16
-FLASH1:
-	MOV		R16, R27									// LDI	DISPLAY, (1<<PT)
+	LDI		R16, 0x04									// LDI	DISPLAY, (1<<PT)
 	SBRC	FLAGS_MP1, 0								//Salta si FLED es 0
 	EOR		DISPLAY, R16								//Encender el punto display 2 (volteado)s
-
 	OUT		PORTD, DISPLAY
 	SBI		PORTB, 1
 	CALL	DELAY
@@ -522,7 +496,6 @@ DISPLAY0:
 	LDS		R16, DHOR
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar decenas dias
 	LDS		R16, DDIAS
-
 	CALL	MOV_POINTER
 	OUT		PORTD, DISPLAY
 	SBI		PORTB, 0
