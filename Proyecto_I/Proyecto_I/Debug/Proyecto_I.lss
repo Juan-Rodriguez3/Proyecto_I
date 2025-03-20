@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Wed Mar 19 21:41:44 2025
+AVRASM ver. 2.2.8  C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm Wed Mar 19 22:48:29 2025
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\m328Pdef.inc'
 C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.asm(13): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\avrasm\inc\M328PDEF.inc'
@@ -1329,18 +1329,21 @@ C:\Users\juana\OneDrive\Documentos\GitHub\Proyecto_I\Proyecto_I\Proyecto_I\main.
 0000d0 fd57                      	SBRC	FLAGS_MP, 7
 0000d1 2750                      	EOR		FLAGS_MP, R16
                                  
+                                 	//Limpiar las banderas FDISP01 y FDISP23
+0000d2 e006                      	LDI		R16, 0x06								//LDI	R16, (1<<FDISP01) | (1<<FDISP23)
+0000d3 2760                      	EOR		FLAGS_MP1, R16
+                                 
                                  	//Setear Banderas de seleccion de parejas de display
-0000d2 940e 013d                 	CALL	FLAG_DISP
+0000d4 940e 013d                 	CALL	FLAG_DISP
                                  
                                  	//Incrementar o decrementar
-0000d4 fd51                      	SBRC	FLAGS_MP, 1								// Si Incrementar --> 1 incrementar
-0000d5 940e 0204                 	CALL	INCREMENTAR
-0000d7 fd52                      	SBRC	FLAGS_MP, 2								//Si Decrementar --> 1 decrementar
-0000d8 940e 0293                 	CALL	DECREMENTAR
-0000da 940e 0143                 	CALL	MULTIPLEX	
+0000d6 fd51                      	SBRC	FLAGS_MP, 1								// Si Incrementar --> 1 incrementar
+0000d7 940e 0204                 	CALL	INCREMENTAR
+0000d9 fd52                      	SBRC	FLAGS_MP, 2								//Si Decrementar --> 1 decrementar
+0000da 940e 0293                 	CALL	DECREMENTAR
+0000dc 940e 0143                 	CALL	MULTIPLEX	
                                  	
-                                 	//Clear Banderas de seleccion de parejas de display
-0000dc 940e 013d                 	CALL	FLAG_DISP
+                                 	
                                  											
 0000de cfbc                      	RJMP	MAIN									
                                  													
@@ -2097,8 +2100,8 @@ counted separately from r26..r31 here.
 "ATmega328P" register use summary:
 x  :   0 y  :   0 z  :   4 r0 :   0 r1 :   2 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16: 342 r17:   6 r18:   4 r19:  11 r20:  10 
-r21:  68 r22:   7 r23:  20 r24:  19 r25:   8 r26:   8 r27:   6 r28:   0 
+r13:   0 r14:   0 r15:   0 r16: 344 r17:   6 r18:   4 r19:  11 r20:  10 
+r21:  68 r22:   8 r23:  20 r24:  19 r25:   8 r26:   8 r27:   6 r28:   0 
 r29:   0 r30:   5 r31:   5 
 Registers used: 16 out of 35 (45.7%)
 
@@ -2108,12 +2111,12 @@ andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0
 brcc  :   0 brcs  :   0 break :   0 breq  :  15 brge  :   0 brhc  :   0 
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
 brne  :  32 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :  34 cbi   :   8 cbr   :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :  33 cbi   :   8 cbr   :   0 
 clc   :   0 clh   :   0 cli   :   1 cln   :   0 clr   :   0 cls   :   0 
 clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   3 cpc   :   0 
-cpi   :  44 cpse  :   0 dec   :  10 eor   :  26 fmul  :   0 fmuls :   0 
+cpi   :  44 cpse  :   0 dec   :  10 eor   :  27 fmul  :   0 fmuls :   0 
 fmulsu:   0 icall :   0 ijmp  :   0 in    :   5 inc   :  22 jmp   :   0 
-ld    :   0 ldd   :   0 ldi   : 126 lds   :  48 lpm   :   8 lsl   :   0 
+ld    :   0 ldd   :   0 ldi   : 127 lds   :  48 lpm   :   8 lsl   :   0 
 lsr   :   0 mov   :   8 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
 neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :  19 pop   :   6 
 push  :   6 rcall :   0 ret   :  29 reti  :   3 rjmp  :  18 rol   :   0 

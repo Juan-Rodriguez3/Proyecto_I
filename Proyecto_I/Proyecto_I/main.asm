@@ -298,6 +298,10 @@ CONFI_HORA:
 	SBRC	FLAGS_MP, 7
 	EOR		FLAGS_MP, R16
 
+	//Limpiar las banderas FDISP01 y FDISP23
+	LDI		R16, 0x06								//LDI	R16, (1<<FDISP01) | (1<<FDISP23)
+	EOR		FLAGS_MP1, R16
+
 	//Setear Banderas de seleccion de parejas de display
 	CALL	FLAG_DISP
 
@@ -308,8 +312,7 @@ CONFI_HORA:
 	CALL	DECREMENTAR
 	CALL	MULTIPLEX	
 	
-	//Clear Banderas de seleccion de parejas de display
-	CALL	FLAG_DISP
+	
 											
 	RJMP	MAIN									
 													
