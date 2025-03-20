@@ -471,9 +471,9 @@ MULTIPLEX:
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar Unidades de dias
 	LDS		R16, UDIAS
 	CALL	MOV_POINTER
-	/*LDI		R16, 0x08									// LDI	DISPLAY, (1<<PT)
+	LDI		R16, 0x04									// LDI	DISPLAY, (1<<PT)
 	SBRC	FLAGS_MP1, 3								//Salta si FLED es 0
-	EOR		DISPLAY, R16								//Encender el punto display 2 (volteado)s*/
+	EOR		DISPLAY, R16								//Encender el punto display 2 (volteado)s
 	OUT		PORTD, DISPLAY
 	SBI		PORTB, 1
 	CALL	DELAY
