@@ -211,8 +211,8 @@ CONFI_ALARMA:
 	//Mostrar los valores de la alarma sin modificar los registros de horas y minutos reales
 	CALL	MULTIPLEX	
 	//Actualizar CLK							
-	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
-	CALL	LOGICH
+	//SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
+	//CALL	LOGICH
 	//Actualizar fecha
 	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
 	CALL	LOGICF				
