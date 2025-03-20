@@ -6,22 +6,21 @@
 ; Proyecto: Proyecto I
 ; Hardware: ATmega328P
 ; Creado: 07/03/2025
-; Modificado: 07/03/2025
-; Descripcion: Reloj Digital con 4 modos.
+; Modificado: 19/03/2025
+; Descripcion: Reloj Digital con despliegue de hora y fecha, sistema de alarma y configuración de hora, alarma y fecha.
 ;*****************************************
 
 .include "M328PDEF.inc"
-.def	SET_PB_A=R17						//Estado de los botones
-.def	SET_PB_N=R18						//PUERTO C
+.def	SET_PB_N=R17						//Estado de los botones
+.def	CONTAD0R=R18						//PUERTO C
 .def	DISPLAY=R19							//PUERTO D
-.def	FLAG_STATE=R20						//Bandera de Modos
-.def	CONTADOR=R21						//Contador para displays	
+.def	FLAG_STATE=R20						//Bandera de Modos	
 .def	FLAGS_MP=R22						//Bandera Multiproposito
 .def	LIMIT_OVF=R23						//Contador de dias y meses
 .def	DIAS=R24							//Contador de dias y meses
-.equ	T1VALUE= 64558						//Valor inicial para la interrupci?n de 1 seg
-.equ	T0VALUE=100							//Valor para interrupci?n de 10 ms
-.equ	T2VALUE=224							//Valor para interrupci?n de 2 ms
+.equ	T1VALUE= 64558						//Valor inicial para la interrupcion de 60 seg
+.equ	T0VALUE=11							//Valor para interrupcion de 250 ms
+.equ	T2VALUE=224							//Valor para interrupcion de 2 ms
 .dseg
 
 .org	SRAM_START
@@ -120,7 +119,7 @@ SETUP:
 	STS		UCSR0B, R16								
 													
 	//Valores iniciales								
-	LDI		SET_PB_A, 0x0F							
+	LDI		CONTAD0R, 0x00							
 	LDI		SET_PB_N, 0x00							
 	LDI		DISPLAY, 0x00							
 	LDI		FLAGS_MP, 0x00							//Bandera para los puntos
@@ -140,7 +139,7 @@ SETUP:
 	LDI		R16, 1
 	STS		UMES, R16
 	STS		UDIAS, R16								
-	LDS		CONTADOR, UMIN							
+	LDS		R16, UMIN							
 													
 													
 	//Usar el puntero Z como salida de display		
@@ -363,8 +362,10 @@ ISR_TIMER0:
 	IN		R16, SREG
 	PUSH	R16
 
-	//Progra de antirevote
-	IN		SET_PB_N, PINC								//Releer el pinc
+	LDI		R16, T0VALUE
+	OUT		TCNT0, R16									//establecer el valor inicial a TCNT0 para interrumpir cada 10ms
+
+
 
 RETORN0:
 	POP		R16
@@ -381,10 +382,6 @@ ISR_PCINT1:
 	PUSH	R16
 	//Progra de antirebote
 	IN		SET_PB_N, PINC								//Leer el puerto C
-	CP		SET_PB_N, SET_PB_A				
-	BREQ	RETORNO	
-	//Revisar que boton se presiono
-	MOV		SET_PB_A, SET_PB_N
 	//Botones de configuracion.
 	LDI		R16, 0x02									//LDI	R16, (1<<Incrementar)
 	SBRS	SET_PB_N, 0									//Si presiono el boton 0, el bit 0 esta en LOW
@@ -422,7 +419,7 @@ DELAY:
 MOV_POINTER:
 	LDI		ZH, HIGH(TABLA<<1)				
 	LDI		ZL, LOW(TABLA<<1)
-	ADD		ZL, CONTADOR								//Se incrementa la parte baja
+	ADD		ZL, R16								//Se incrementa la parte baja
 	ADC		ZH, R1										//Se suma 0 y el carro de la parte baja	
 	LPM		DISPLAY, Z
 	OUT		PORTD, DISPLAY 
@@ -431,7 +428,7 @@ MOV_POINTER:
 MOV_POINTER2:
 	LDI		ZH, HIGH(TABLA2<<1)				
 	LDI		ZL, LOW(TABLA2<<1)
-	ADD		ZL, CONTADOR								//Se incrementa la parte baja
+	ADD		ZL, R16								//Se incrementa la parte baja
 	ADC		ZH, R1										//Se suma 0 y el carro de la parte baja	
 	LPM		DISPLAY, Z
 	OUT		PORTD, DISPLAY 
@@ -442,9 +439,9 @@ MOV_POINTER2:
 MULTIPLEX:
 	//Unidades de minutos/MES
 	SBRC	FLAGS_MP, 6								// HORA --> 1 usar unidades de minuto
-	LDS		CONTADOR, UMIN
+	LDS		R16, UMIN
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar unidades mes
-	LDS		CONTADOR, UMES
+	LDS		R16, UMES
 	CALL	MOV_POINTER
 	SBI		PORTB, 3
 	CALL	DELAY
@@ -452,9 +449,9 @@ MULTIPLEX:
 
 	//Decenas de minutos/MES
 	SBRC	FLAGS_MP, 6								// HORA --> 1 usar decenas de minuto
-	LDS		CONTADOR, DMIN
+	LDS		R16, DMIN
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar decenas mes
-	LDS		CONTADOR, DMES
+	LDS		R16, DMES
 	CALL	MOV_POINTER2
 	SBI		PORTB, 2
 	CALL	DELAY
@@ -462,9 +459,9 @@ MULTIPLEX:
 
 	//Unidades de horas/dias
 	SBRC	FLAGS_MP, 6								// HORA --> 1 usar unidades de horas
-	LDS		CONTADOR, UHOR
+	LDS		R16, UHOR
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar Unidades de dias
-	LDS		CONTADOR, UDIAS
+	LDS		R16, UDIAS
 	CALL	MOV_POINTER
 	SBI		PORTB, 1
 	CALL	DELAY
@@ -472,9 +469,9 @@ MULTIPLEX:
 
 	//Decenas de horas/dias
 	SBRC	FLAGS_MP, 6								// HORA --> 1 usar decenas de hpras
-	LDS		CONTADOR, DHOR
+	LDS		R16, DHOR
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar decenas dias
-	LDS		CONTADOR, DDIAS
+	LDS		R16, DDIAS
 	CALL	MOV_POINTER
 	SBI		PORTB, 0
 	CALL	DELAY
@@ -489,66 +486,66 @@ LOGICH:
 	EOR		FLAGS_MP, R16
 													
 	//incrementar el contador de unidades			
-	LDS		CONTADOR, UMIN							//Pasar las UMIN al contador
-	INC		CONTADOR								//Incrementar contador
-	STS		UMIN, CONTADOR							//Actualizar el valor de UMIN
+	LDS		R16, UMIN							//Pasar las UMIN al contador
+	INC		R16								//Incrementar contador
+	STS		UMIN, R16							//Actualizar el valor de UMIN
 
 	//Overflow en unidades de minuto (10 minutos)
-	CPI		CONTADOR, 10							//ovf
+	CPI		R16, 10							//ovf
 	BRNE	RETORN1
 
 	//Reiniciar el contador de Unidades de minutos							
-	LDI		CONTADOR, 0x00
-	STS		UMIN, CONTADOR
+	LDI		R16, 0x00
+	STS		UMIN, R16
 
 	//Incrementar el contador de decenas de minutos
-	LDS		CONTADOR, DMIN
-	INC		CONTADOR
-	STS		DMIN, CONTADOR
+	LDS		R16, DMIN
+	INC		R16
+	STS		DMIN, R16
 
 	//Overflow en decenas de minuto
-	CPI		CONTADOR, 6 
+	CPI		R16, 6 
 	BRNE	RETORN1
 
 	//Reiniciar el contador de decenas de minutos (60)
-	LDI		CONTADOR, 0x00
-	STS		DMIN, CONTADOR
+	LDI		R16, 0x00
+	STS		DMIN, R16
 
 	//Incrementar el contador de unidades de hora
-	LDS		CONTADOR, UHOR
-	INC		CONTADOR
-	STS		UHOR, CONTADOR
+	LDS		R16, UHOR
+	INC		R16
+	STS		UHOR, R16
 
 	//El overflow de las unidades de hora dependen de las decenas de hora
 	// si decenas= 1 | 0 el overflow >>> es en 9
 	// si decenas=2  el overflow >>> es en 4
-	LDS		CONTADOR, DHOR
-	CPI		CONTADOR, 2
+	LDS		R16, DHOR
+	CPI		R16, 2
 	BREQ	OVERF_2	
 
 	//Overflow de unidades de hora para decenas 0-1
-	LDS		CONTADOR, UHOR								//Se vuelve a cargar las unidades para comparar
-	CPI		CONTADOR, 10
+	LDS		R16, UHOR								//Se vuelve a cargar las unidades para comparar
+	CPI		R16, 10
 	BRNE	RETORN1
-	LDI		CONTADOR, 0x00								//reiniciar el contador de unidades
-	STS		UHOR, CONTADOR
+	LDI		R16, 0x00								//reiniciar el contador de unidades
+	STS		UHOR, R16
 
 	//Incrementar el contador de decenas de horas
-	LDS		CONTADOR, DHOR
-	INC		CONTADOR
-	STS		DHOR, CONTADOR
+	LDS		R16, DHOR
+	INC		R16
+	STS		DHOR, R16
 	RJMP	RETORN1
 
 //OVF de unidades para decenas de 2
 OVERF_2:
-	LDS		CONTADOR, UHOR								//se cargan las unidades para comparar
-	CPI		CONTADOR, 4									//Esta vez el limite es 4
+	LDS		R16, UHOR								//se cargan las unidades para comparar
+	CPI		R16, 4									//Esta vez el limite es 4
 	BRNE	RETORN1
 
 	//Reiniciar los contadores de unidades y decenas de hora
-	LDI		CONTADOR, 0x00								//reiniciar contadores de unidades y decenas de horas
-	STS		UHOR, CONTADOR
-	STS		DHOR, CONTADOR
+	LDI		R16, 0x00								//reiniciar contadores de unidades y decenas de horas
+	STS		UHOR, R16
+	STS		DHOR, R16
 
 	//Encender bandera que incrementa DIAS
 	LDI		R16, 0x01									//LDI	R16, (1<<OVFD)
@@ -686,50 +683,50 @@ MINMES:
 
 /**Logica para incrementar horas/mins**/
 INCHOUR:
-	LDI		R16, 10										//Limite es 10
-	LDS		CONTADOR, DHOR
+	LDI		LIMIT_OVF, 10								//Limite es 10
+	LDS		R16, DHOR
 	//DE 1/0 OVFUD hasta 10 y cuando es 2 OVFUD hasta 4
-	CPI		CONTADOR, 2
+	CPI		R16, 2
 	BRNE	INCUHOUR
-	LDI		R16, 4										//limite es 4
+	LDI		LIMIT_OVF, 4										//limite es 4
 INCUHOUR:
 	//Incrementar unidades
-	LDS		CONTADOR, UHOR
-	INC		CONTADOR
-	STS		UHOR, CONTADOR 
-	CP		CONTADOR, R16								//ovf de unidades de horas
+	LDS		R16, UHOR
+	INC		R16
+	STS		UHOR, R16 
+	CP		R16, LIMIT_OVF									//ovf de unidades de horas
 	BRNE	R_INCH
 	//Reiniciar las unidades
-	LDI		CONTADOR, 0x00			
-	STS		UHOR, CONTADOR
+	LDI		R16, 0x00			
+	STS		UHOR, R16
 	//Incrementar decenas
-	LDS		CONTADOR, DHOR
-	INC		CONTADOR
-	STS		DHOR, CONTADOR
-	CPI		CONTADOR, 3
+	LDS		R16, DHOR
+	INC		R16
+	STS		DHOR, R16
+	CPI		R16, 3
 	BRNE	R_INCH
 	//Reiniciar el contador de decenas
-	LDI		CONTADOR, 0x00
-	STS		DHOR, CONTADOR
+	LDI		R16, 0x00
+	STS		DHOR, R16
 R_INCH:
 	RET
 
 //logica para incrementar minutos
 INCMINS:
-	LDS		CONTADOR, UMIN									//Incrementar unidades
-	INC		CONTADOR
-	STS		UMIN, CONTADOR
-	CPI		CONTADOR, 10
+	LDS		R16, UMIN									//Incrementar unidades
+	INC		R16
+	STS		UMIN, R16
+	CPI		R16, 10
 	BRNE	R_INCM
-	LDI		CONTADOR, 0x00									//Reinicar unidades
-	STS		UMIN, CONTADOR
-	LDS		CONTADOR, DMIN									//Incrementar decenas
-	INC		CONTADOR
-	STS		DMIN, CONTADOR
-	CPI		CONTADOR, 6
+	LDI		R16, 0x00									//Reinicar unidades
+	STS		UMIN, R16
+	LDS		R16, DMIN									//Incrementar decenas
+	INC		R16
+	STS		DMIN, R16
+	CPI		R16, 6
 	BRNE	R_INCM
-	LDI		CONTADOR, 0x00									//Reiniciar decenas
-	STS		DMIN, CONTADOR
+	LDI		R16, 0x00									//Reiniciar decenas
+	STS		DMIN, R16
 R_INCM:
 	RET
 /**Logica para incrementar horas/mins**/
@@ -759,16 +756,16 @@ INCUDAYS:
 	INC		DIAS
 	CP		DIAS, LIMIT_OVF
 	BREQ	RUD											//Ir a reiniciar contador de dias
-	LDS		CONTADOR, UDIAS
-	INC		CONTADOR									//Incrementar unidades de dias
-	STS		UDIAS, CONTADOR
-	CPI		CONTADOR, 10
+	LDS		R16, UDIAS
+	INC		R16									//Incrementar unidades de dias
+	STS		UDIAS, R16
+	CPI		R16, 10
 	BRNE	R_INCD
-	LDI		CONTADOR, 0x00								//Reiniciar unidades de dias
-	STS		UDIAS, CONTADOR
-	LDS		CONTADOR, DDIAS								//Incrementar decenas de dias
-	INC		CONTADOR
-	STS		DDIAS, CONTADOR	
+	LDI		R16, 0x00								//Reiniciar unidades de dias
+	STS		UDIAS, R16
+	LDS		R16, DDIAS								//Incrementar decenas de dias
+	INC		R16
+	STS		DDIAS, R16	
 	RJMP	R_INCD
 RUD:
 	LDI		DIAS, 0x00
@@ -779,30 +776,30 @@ R_INCD:
 	RET
 
 INCMES:
-	LDS		CONTADOR, DMES
-	CPI		CONTADOR, 0x00
+	LDS		R16, DMES
+	CPI		R16, 0x00
 	BRNE	INCDM
-	LDS		CONTADOR, UMES								//Incrementar unidades 
-	INC		CONTADOR
-	STS		UMES, CONTADOR
-	CPI		CONTADOR, 10
+	LDS		R16, UMES								//Incrementar unidades 
+	INC		R16
+	STS		UMES, R16
+	CPI		R16, 10
 	BRNE	R_INCM
-	LDI		CONTADOR, 0x00								//Reinciar las unidades
-	STS		UMES, CONTADOR
-	LDS		CONTADOR, DMES								//Incrementar las decenas
-	INC		CONTADOR
-	STS		DMES, CONTADOR	
+	LDI		R16, 0x00								//Reinciar las unidades
+	STS		UMES, R16
+	LDS		R16, DMES								//Incrementar las decenas
+	INC		R16
+	STS		DMES, R16	
 	RJMP	R_INCM
 INCDM:
-	LDS		CONTADOR, UMES								//Incrementar unidades 
-	INC		CONTADOR
-	STS		UMES, CONTADOR
-	CPI		CONTADOR,	3								//Ahora el overflow se hace en 2
+	LDS		R16, UMES								//Incrementar unidades 
+	INC		R16
+	STS		UMES, R16
+	CPI		R16,	3								//Ahora el overflow se hace en 2
 	BRNE	R_INCME
-	LDI		CONTADOR, 0x01								//Resetear unidades
-	STS		UMES, CONTADOR
-	LDI		CONTADOR, 0x00								//Reinciar las decenas
-	STS		DMES, CONTADOR
+	LDI		R16, 0x01								//Resetear unidades
+	STS		UMES, R16
+	LDI		R16, 0x00								//Reinciar las decenas
+	STS		DMES, R16
 R_INCME:
 	RET
 
@@ -837,89 +834,89 @@ MINMESD:
 
 //Subrutinas de decremento
 DECHOUR:
-	LDS		CONTADOR, DHOR								//Comparar si las decenas son 0
-	CPI		CONTADOR, 0
+	LDS		R16, DHOR								//Comparar si las decenas son 0
+	CPI		R16, 0
 	BRNE	UNDFUH										//Mientras se diferente a 0 el undf de la unidades es en 9
 	
 	//Decrementar unidades de hora
-	LDS		CONTADOR, UHOR
-	CPI		CONTADOR, 0									//El underflow lo hara a 4 si llega a cero
+	LDS		R16, UHOR
+	CPI		R16, 0									//El underflow lo hara a 4 si llega a cero
 	BRNE	UNDFUH
 	//UNDERFLOW DE DIA
-	LDI		CONTADOR, 3
-	STS		UHOR, CONTADOR
-	LDI		CONTADOR, 2
-	STS		DHOR, CONTADOR
+	LDI		R16, 3
+	STS		UHOR, R16
+	LDI		R16, 2
+	STS		DHOR, R16
 	RET
 UNDFUH:
 	//Decrementar unidades de hora
-	LDS		CONTADOR, UHOR
-	CPI		CONTADOR, 0									//El underflow lo hara a 9 si llega a cero
+	LDS		R16, UHOR
+	CPI		R16, 0									//El underflow lo hara a 9 si llega a cero
 	BREQ	UNDFUDH
 	//Decrementar las unidades horas
-	DEC		CONTADOR
-	STS		UHOR, CONTADOR
+	DEC		R16
+	STS		UHOR, R16
 	RET
 UNDFUDH:
-	LDI		CONTADOR, 9
-	STS		UHOR, CONTADOR
+	LDI		R16, 9
+	STS		UHOR, R16
 	//Decrementar decenas de horas
-	LDS		CONTADOR, DHOR
-	DEC		CONTADOR
-	STS		DHOR, CONTADOR	
+	LDS		R16, DHOR
+	DEC		R16
+	STS		DHOR, R16	
 R_DH:
 	RET
 //Rutina de decrementacion de minutos
 DECMINS:
-	LDS		CONTADOR, UMIN
-	CPI		CONTADOR, 0
+	LDS		R16, UMIN
+	CPI		R16, 0
 	BREQ	UNDFUMI
-	DEC		CONTADOR									//Decrementar unidades de minutO
-	STS		UMIN, CONTADOR
+	DEC		R16									//Decrementar unidades de minutO
+	STS		UMIN, R16
 	RET
 UNDFUMI:
-	LDI		CONTADOR, 9									//Reiniciar en 9 las unidades de minito
-	STS		UMIN, CONTADOR
-	LDS		CONTADOR, DMIN
-	CPI		CONTADOR, 0	
+	LDI		R16, 9									//Reiniciar en 9 las unidades de minito
+	STS		UMIN, R16
+	LDS		R16, DMIN
+	CPI		R16, 0	
 	BREQ	UNDFDMI			
-	DEC		CONTADOR									//Decrementar horas de minuto
-	STS		DMIN, CONTADOR
+	DEC		R16									//Decrementar horas de minuto
+	STS		DMIN, R16
 	RET
 UNDFDMI:
-	LDI		CONTADOR, 5									//Reiniciar las decenas de minuto a 5
-	STS		DMIN, CONTADOR
+	LDI		R16, 5									//Reiniciar las decenas de minuto a 5
+	STS		DMIN, R16
 	RET
 
 DECMES:
-	LDS		CONTADOR, DMES
-	CPI		CONTADOR, 0
+	LDS		R16, DMES
+	CPI		R16, 0
 	BRNE	UNDFUME
-	LDS		CONTADOR, UMES								//Underflow de unidades de mes 					
-	CPI		CONTADOR, 1
+	LDS		R16, UMES								//Underflow de unidades de mes 					
+	CPI		R16, 1
 	BREQ	UNDFDME
-	DEC		CONTADOR									//Decrementar unidades de mes
-	STS		UMES, CONTADOR	
+	DEC		R16									//Decrementar unidades de mes
+	STS		UMES, R16	
 	RET
 UNDFDME:
-	LDI		CONTADOR, 2
-	STS		UMES, CONTADOR
-	LDI		CONTADOR, 1
-	STS		DMES, CONTADOR
+	LDI		R16, 2
+	STS		UMES, R16
+	LDI		R16, 1
+	STS		DMES, R16
 	RET													
 UNDFUME:
-	LDS		CONTADOR, UMES								//Underflow de unidades de mes 					
-	CPI		CONTADOR, 0
+	LDS		R16, UMES								//Underflow de unidades de mes 					
+	CPI		R16, 0
 	BREQ	UNDFDME2
-	DEC		CONTADOR									//Decrementar unidades de mes
-	STS		UMES, CONTADOR
+	DEC		R16									//Decrementar unidades de mes
+	STS		UMES, R16
 	RET
 UNDFDME2:
-	LDI		CONTADOR, 9									//Resetear unidades a 0
-	STS		UMES, CONTADOR
-	LDS		CONTADOR, DMES								//Decrementar decenas de mes
-	DEC		CONTADOR
-	STS		DMES, CONTADOR
+	LDI		R16, 9									//Resetear unidades a 0
+	STS		UMES, R16
+	LDS		R16, DMES								//Decrementar decenas de mes
+	DEC		R16
+	STS		DMES, R16
 	RET
 
 DECDAYS:
@@ -955,34 +952,34 @@ SALTO:
 	CPI		LIMIT_OVF, 29								//Mientras estemos en febrero se cambiara la lógica
 	BRNE	UNDFDD
 	LDI		DIAS, 28
-	LDI		CONTADOR, 8									//Realizar el underflow especial para febrero.
-	STS		UDIAS, CONTADOR
-	LDI		CONTADOR, 2
-	STS		DDIAS, CONTADOR
+	LDI		R16, 8									//Realizar el underflow especial para febrero.
+	STS		UDIAS, R16
+	LDI		R16, 2
+	STS		DDIAS, R16
 	RET 
 UNDFDD:	
-	LDI		CONTADOR, 3									//Las decenas siempre se resetean en 3
-	STS		DDIAS, CONTADOR
+	LDI		R16, 3									//Las decenas siempre se resetean en 3
+	STS		DDIAS, R16
 	SBRS	LIMIT_OVF, 5								//Salta si Limit_ovf --> 0010 0000 = 32
-	LDI		CONTADOR, 0								
+	LDI		R16, 0								
 	SBRC	LIMIT_OVF, 5								//Salta si LIMIT_OVF --> 0001 1111 = 31
-	LDI		CONTADOR, 1
-	STS		UDIAS, CONTADOR
+	LDI		R16, 1
+	STS		UDIAS, R16
 	RET
 DECUD:
 	DEC		DIAS
-	LDS		CONTADOR, UDIAS
-	CPI		CONTADOR, 0									//Underflow de unidades normal
+	LDS		R16, UDIAS
+	CPI		R16, 0									//Underflow de unidades normal
 	BREQ	UNDFUD
-	DEC		CONTADOR									//Decrementar unidades de dias
-	STS		UDIAS, CONTADOR
+	DEC		R16									//Decrementar unidades de dias
+	STS		UDIAS, R16
 	RET
 UNDFUD:
-	LDI		CONTADOR, 9									//Setear las unidades de dias en 9
-	STS		UDIAS, CONTADOR
-	LDS		CONTADOR, DDIAS								//Decrementar decenas de dias
-	DEC		CONTADOR
-	STS		DDIAS, CONTADOR
+	LDI		R16, 9									//Setear las unidades de dias en 9
+	STS		UDIAS, R16
+	LDS		R16, DDIAS								//Decrementar decenas de dias
+	DEC		R16
+	STS		DDIAS, R16
 	RET
 
 
