@@ -19,7 +19,7 @@
 .def	FLAGS_MP1=R22						//Bandera Multiproposito 1
 .def	LIMIT_OVF=R23						//Contador de dias y meses
 .def	DIAS=R24							//Contador de dias y meses
-.equ	T1VALUE= 64558						//Valor inicial para la interrupcion de 60 seg
+.equ	T1VALUE= 65525						//Valor inicial para la interrupcion de 60 seg
 .equ	T0VALUE=11							//Valor para interrupcion de 250 ms
 .equ	T2VALUE=224							//Valor para interrupcion de 2 ms
 .dseg
@@ -758,37 +758,46 @@ R_INCM:
 
 /**Logica para incrementar meses/dias**/
 INCDAYS:
+	LDI		R27, 0
 	//Ver que la logica a usar dependende si estamos antes de agosto o despues
 	LDS		R16, UMES
 	CPI		R16, 8										//Si es igual a 7 ir LOVF2
-	BRNE	L0VF1										//mientra no sea igual a 7 ir LOVF1
-L0VF2:
+	BREQ	L0VF20
+	LDS		R16, DMES
+	SBRC	R16, 0
+	LDI		R17, 2
+	CP		R16, R17
+	BRNE	L0VF10										//mientra no sea igual a 7 ir LOVF1
+L0VF20:
 	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 0
 	Los de 30 terminan en 1*/
 	LDI		R25, 31										//Se cambia la lógica
 	LDI		R26, 32
-L0VF1:
+L0VF10:
 	//De enero (0x01) a Julio (0x07) los meses de 31 dias terminan en 1
 	//Los de 30 terminan en 0 excepto febrero.
+	LDS		R16, UMES
 	SBRC	R16, 0										//Revisar si el mes termina en 0 o en 1
 	MOV		LIMIT_OVF, R25								// 31
 	SBRS	R16, 0
 	MOV		LIMIT_OVF, R26								// 30
 	CPI		R16, 2										//Mientras no sea febrero usar 30 o 31 como limite
 	BRNE	INCUDAYS
+	LDS		R16, DMES
+	SBRS	R16, 0
 	LDI		LIMIT_OVF, 29
 INCUDAYS:
 	INC		DIAS
 	CP		DIAS, LIMIT_OVF
 	BREQ	RUD											//Ir a reiniciar contador de dias
 	LDS		R16, UDIAS
-	INC		R16									//Incrementar unidades de dias
+	INC		R16											//Incrementar unidades de dias
 	STS		UDIAS, R16
 	CPI		R16, 10
 	BRNE	R_INCD
-	LDI		R16, 0x00								//Reiniciar unidades de dias
+	LDI		R16, 0x00									//Reiniciar unidades de dias
 	STS		UDIAS, R16
-	LDS		R16, DDIAS								//Incrementar decenas de dias
+	LDS		R16, DDIAS									//Incrementar decenas de dias
 	INC		R16
 	STS		DDIAS, R16	
 	RJMP	R_INCD
@@ -797,6 +806,17 @@ RUD:
 	STS		DDIAS, DIAS
 	LDI		DIAS, 0x01
 	STS		UDIAS, DIAS
+	// Reiniciar R25 y R26
+	LDS		R16, UMES
+	CPI		R16, 1
+	BRNE	R_INCD0
+	LDI		R25, 32
+	LDI		R26, 31
+R_INCD0:
+	CPI		R16, 7
+	BRNE	R_INCD
+	LDI		R25, 32
+	LDI		R26, 31
 R_INCD:
 	RET
 
@@ -804,28 +824,28 @@ INCMES:
 	LDS		R16, DMES
 	CPI		R16, 0x00
 	BRNE	INCDM
-	LDS		R16, UMES								//Incrementar unidades 
+	LDS		R16, UMES									//Incrementar unidades 
 	INC		R16
 	STS		UMES, R16
 	CPI		R16, 10
-	BRNE	R_INCM
-	LDI		R16, 0x00								//Reinciar las unidades
+	BRNE	D_INCME
+	LDI		R16, 0x00									//Reinciar las unidades
 	STS		UMES, R16
-	LDS		R16, DMES								//Incrementar las decenas
+	LDS		R16, DMES									//Incrementar las decenas
 	INC		R16
 	STS		DMES, R16	
-	RJMP	R_INCM
+	RJMP	D_INCME
 INCDM:
-	LDS		R16, UMES								//Incrementar unidades 
+	LDS		R16, UMES									//Incrementar unidades 
 	INC		R16
 	STS		UMES, R16
-	CPI		R16,	3								//Ahora el overflow se hace en 2
-	BRNE	R_INCME
-	LDI		R16, 0x01								//Resetear unidades
+	CPI		R16,	3									//Ahora el overflow se hace en 2
+	BRNE	D_INCME
+	LDI		R16, 0x01									//Resetear unidades
 	STS		UMES, R16
-	LDI		R16, 0x00								//Reinciar las decenas
+	LDI		R16, 0x00									//Reinciar las decenas
 	STS		DMES, R16
-R_INCME:
+D_INCME:
 	RET
 
 /***************Logica para incrementar***************/
@@ -964,6 +984,8 @@ LUNDF1:
 	MOV		LIMIT_OVF, R26								// 30
 	CPI		R16, 2										//Mientras no sea febrero usar 30 o 31 como limite
 	BRNE	SALTO
+	LDS		R16, DMES
+	SBRS	R16, 0										//Para diferencia diciembre de enero.
 	LDI		LIMIT_OVF, 29
 SALTO:
 	CPI		DIAS, 1
@@ -982,7 +1004,7 @@ SALTO:
 	STS		UDIAS, R16
 	LDI		R16, 2
 	STS		DDIAS, R16
-	RET 
+	RJMP	RLI
 UNDFDD:	
 	LDI		R16, 3									//Las decenas siempre se resetean en 3
 	STS		DDIAS, R16
@@ -991,7 +1013,7 @@ UNDFDD:
 	SBRC	LIMIT_OVF, 5								//Salta si LIMIT_OVF --> 0001 1111 = 31
 	LDI		R16, 1
 	STS		UDIAS, R16
-	RET
+	RJMP	RLI
 DECUD:
 	DEC		DIAS
 	LDS		R16, UDIAS
@@ -999,14 +1021,28 @@ DECUD:
 	BREQ	UNDFUD
 	DEC		R16									//Decrementar unidades de dias
 	STS		UDIAS, R16
-	RET
+	RJMP	RLI
 UNDFUD:
 	LDI		R16, 9									//Setear las unidades de dias en 9
 	STS		UDIAS, R16
 	LDS		R16, DDIAS								//Decrementar decenas de dias
 	DEC		R16
 	STS		DDIAS, R16
+RLI:
+	// Reiniciar R25 y R26
+	LDS		R16, UMES
+	CPI		R16, 1
+	BRNE	RLIDEC
+	LDI		R25, 32
+	LDI		R26, 31
+RLIDEC:
+	CPI		R16, 7
+	BRNE	SALIDA
+	LDI		R25, 32
+	LDI		R26, 31
+SALIDA:
 	RET
+
 /***************Logica para decrementar***************/
 
 
