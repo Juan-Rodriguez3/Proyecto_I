@@ -7,7 +7,7 @@
 ; Hardware: ATmega328P
 ; Creado: 07/03/2025
 ; Modificado: 19/03/2025
-; Descripcion: Reloj Digital con despliegue de hora y fecha, sistema de alarma y configuración de hora, alarma y fecha.
+; Descripcion: Reloj Digital con despliegue de hora y fecha, sistema de alarma y configuraci?n de hora, alarma y fecha.
 ;*****************************************
 
 .include "M328PDEF.inc"
@@ -19,7 +19,7 @@
 .def	FLAGS_MP1=R22						//Bandera Multiproposito 1
 .def	LIMIT_OVF=R23						//Contador de dias y meses
 .def	DIAS=R24							//Contador de dias y meses
-.equ	T1VALUE= 65525						//Valor inicial para la interrupcion de 60 seg
+.equ	T1VALUE= 64558						//Valor inicial para la interrupcion de 60 seg
 .equ	T0VALUE=11							//Valor para interrupcion de 250 ms
 .equ	T2VALUE=224							//Valor para interrupcion de 2 ms
 .dseg
@@ -98,9 +98,9 @@ SETUP:
 	OUT		PORTC, R16
 
 	//Configuracion de puerto B
-	LDI		R16, 0x2F								//Todos los pines como salida excepto PB4
+	LDI		R16, 0x1F								//Todos los pines como salida excepto PB4
 	OUT		DDRB, R16
-	LDI		R16, 0x10								//Todos los pines conducen  logico y activar pullup PB4
+	LDI		R16, 0x00								//Todos los pines conducen  logico y activar pullup PB4
 	OUT		PORTB, R16						
 
 	//Confifuracion de puerto D
@@ -123,8 +123,8 @@ SETUP:
 	LDI		CONTAD0R, 0x00							
 	LDI		SET_PB_N, 0x00							
 	LDI		DISPLAY, 0x00							
-	LDI		FLAGS_MP, 0x00							//Banderas multipróposito
-	LDI		FLAGS_MP1, 0x00							//Banderas multipróposito
+	LDI		FLAGS_MP, 0x00							//Banderas multipr?posito
+	LDI		FLAGS_MP1, 0x00							//Banderas multipr?posito
 	LDI		FLAG_STATE, 0x00						//Por default inicia en el modo hora.
 	LDI		LIMIT_OVF, 0x00							//Comparar los dias con este registro
 	LDI		DIAS, 0x01
@@ -154,59 +154,76 @@ SETUP:
 	RJMP MAIN										
 													
 //Coloco este estado aca por el limite del	BREQ
-/********************Modos********************/	
-OFFAA:
-	//Verificar los datos para el multiplexeo HORAS
-	LDI		R16, 0x40								//LDI	R16, (1<<HORA)
-	//Encender la bandera de HORA
-	SBRS	FLAGS_MP, 6
-	EOR		FLAGS_MP, R16
-
-	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
-	//Apagar la bandera de fecha
-	SBRC	FLAGS_MP, 7
-	EOR		FLAGS_MP, R16
-													
-	//Apagar todas las leds de estado				
-	SBI		PORTB, 4								
-	SBI		PORTC, 5		
-	
-	//Actualizar CLK							
-	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
-	CALL	LOGICH
-
-	//Actualizar fecha
-	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
-	CALL	LOGICF	
-							
-	RJMP	MAIN													
+/********************Modos********************/														
 
 CONFI_ALARMA:
+	//Encender la led de alarma (ROJA)				
+	SBI		PORTC, 5								
+	CBI		PORTC, 4		
+	//Es la misma logica que en configuración de hora lo unico que no se debe modificar la hora
+	//Se guardan las unidades y decenas de horas y minutos
+	LDS		R16, UHOR
+	PUSH	R16
+	LDS		R16, DHOR	
+	PUSH	R16
+	LDS		R16, UMIN	
+	PUSH	R16
+	LDS		R16, DMIN
+	PUSH	R16	
 	//Verificar los datos para el multiplexeo HORAS
 	LDI		R16, 0x40								//LDI	R16, (1<<HORA)
-	
 	//Encender la bandera de HORA
 	SBRS	FLAGS_MP, 6
 	EOR		FLAGS_MP, R16
 	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
-	
 	//Apagar la bandera de fecha
 	SBRC	FLAGS_MP, 7
-	EOR		FLAGS_MP, R16								
-	
-	//Encender la led de alarma (ROJA)				
-	SBI		PORTC, 5								
-	CBI		PORTC, 4
-	
+	EOR		FLAGS_MP, R16
+	//Incrementar o decrementar
+	SBRC	FLAGS_MP, 1								// Si Incrementar --> 1 incrementar
+	CALL	INCREMENTAR
+	SBRC	FLAGS_MP, 2								//Si Decrementar --> 1 decrementar
+	CALL	DECREMENTAR
+	CALL	MULTIPLEX
+	//Luego de usar las unidades y decenas de horas y minutos las reestablecemos
+	POP		R16
+	STS		DMIN, R16
+	POP		R16
+	STS		UMIN, R16
+	POP		R16
+	STS		DHOR, R16
+	POP		R16
+	STS		UHOR, R16
 	//Actualizar CLK							
 	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
 	CALL	LOGICH
-	
 	//Actualizar fecha
 	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
 	CALL	LOGICF					
-				
-	RJMP	MAIN												
+	RJMP	MAIN	
+	
+CONFIA:
+	RJMP	CONFI_ALARMA
+	OFFAA:
+	//Verificar los datos para el multiplexeo HORAS
+	LDI		R16, 0x40								//LDI	R16, (1<<HORA)
+	//Encender la bandera de HORA
+	SBRS	FLAGS_MP, 6
+	EOR		FLAGS_MP, R16
+	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
+	//Apagar la bandera de fecha
+	SBRC	FLAGS_MP, 7
+	EOR		FLAGS_MP, R16										
+	//Apagar todas las leds de estado				
+	SBI		PORTB, 4								
+	SBI		PORTC, 5		
+	//Actualizar CLK							
+	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
+	CALL	LOGICH
+	//Actualizar fecha
+	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
+	CALL	LOGICF						
+	RJMP	MAIN											
 /********************Modos********************/
 													
 /******************LOOP***********************/		
@@ -220,7 +237,7 @@ MAIN:
 	CPI		FLAG_STATE, 0x03						
 	BREQ	CONFI_FECHA								
 	CPI		FLAG_STATE, 0x04						
-	BREQ	CONFI_ALARMA							
+	BREQ	CONFIA						
 	CPI		FLAG_STATE, 0x05   						
 	BREQ	OFFAA									
 	RJMP	MAIN									
@@ -305,9 +322,7 @@ CONFI_HORA:
 	SBRC	FLAGS_MP, 2								//Si Decrementar --> 1 decrementar
 	CALL	DECREMENTAR
 	CALL	MULTIPLEX		
-	
-	
-						
+					
 	RJMP	MAIN									
 													
 CONFI_FECHA:	
@@ -592,7 +607,7 @@ LOGICF:
 LOVF2:
 	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 0
 	Los de 30 terminan en 1*/
-	LDI		R25, 31										//Se cambia la lógica
+	LDI		R25, 31										//Se cambia la l?gica
 	LDI		R26, 32
 LOVF1:
 	//De enero (0x01) a Julio (0x07) los meses de 31 dias terminan en 1
@@ -651,7 +666,7 @@ RESET_UD:
 	CPI		R16, 3										//El overflow ocurre en 2
 	BRNE	RETORNF
 
-	//Aca pasaron todos lo meses del año.
+	//Aca pasaron todos lo meses del a?o.
 	//Resetear unidades y decenas de mes
 	LDI		R16, 0x00
 	STS		UMES, R16
@@ -678,7 +693,7 @@ RETORNF:
 	RET
 /***************Logica para ovf de modo fecha***************/
 
-/***************Logica para incrementar configuración***************/
+/***************Logica para incrementar configuraci?n***************/
 INCREMENTAR: 
 	//Limpiar la bandera de incremento
 	LDI		R16, 0x02									//LDI	R16, (1<<Incrementar)
@@ -758,25 +773,22 @@ R_INCM:
 
 /**Logica para incrementar meses/dias**/
 INCDAYS:
-	LDI		R27, 0
 	//Ver que la logica a usar dependende si estamos antes de agosto o despues
 	LDS		R16, UMES
 	CPI		R16, 8										//Si es igual a 7 ir LOVF2
-	BREQ	L0VF20
-	LDS		R16, DMES
-	SBRC	R16, 0
-	LDI		R17, 2
-	CP		R16, R17
-	BRNE	L0VF10										//mientra no sea igual a 7 ir LOVF1
-L0VF20:
+	BREQ	L0VF2										//mientra no sea igual a 7 ir LOVF1	
+L0VF2:
 	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 0
 	Los de 30 terminan en 1*/
-	LDI		R25, 31										//Se cambia la lógica
+	LDI		R25, 31										//Se cambia la l?gica
 	LDI		R26, 32
-L0VF10:
+	RJMP	C0VF1
+L0VF1:
+	LDI		R25, 31										//Se cambia la l?gica
+	LDI		R26, 32
+C0VF1:
 	//De enero (0x01) a Julio (0x07) los meses de 31 dias terminan en 1
 	//Los de 30 terminan en 0 excepto febrero.
-	LDS		R16, UMES
 	SBRC	R16, 0										//Revisar si el mes termina en 0 o en 1
 	MOV		LIMIT_OVF, R25								// 31
 	SBRS	R16, 0
@@ -784,20 +796,20 @@ L0VF10:
 	CPI		R16, 2										//Mientras no sea febrero usar 30 o 31 como limite
 	BRNE	INCUDAYS
 	LDS		R16, DMES
-	SBRS	R16, 0
+	SBRS	R16, 0										//Es para diferenciar diciembre de febrero
 	LDI		LIMIT_OVF, 29
 INCUDAYS:
 	INC		DIAS
 	CP		DIAS, LIMIT_OVF
 	BREQ	RUD											//Ir a reiniciar contador de dias
 	LDS		R16, UDIAS
-	INC		R16											//Incrementar unidades de dias
+	INC		R16									//Incrementar unidades de dias
 	STS		UDIAS, R16
 	CPI		R16, 10
 	BRNE	R_INCD
-	LDI		R16, 0x00									//Reiniciar unidades de dias
+	LDI		R16, 0x00								//Reiniciar unidades de dias
 	STS		UDIAS, R16
-	LDS		R16, DDIAS									//Incrementar decenas de dias
+	LDS		R16, DDIAS								//Incrementar decenas de dias
 	INC		R16
 	STS		DDIAS, R16	
 	RJMP	R_INCD
@@ -806,46 +818,46 @@ RUD:
 	STS		DDIAS, DIAS
 	LDI		DIAS, 0x01
 	STS		UDIAS, DIAS
-	// Reiniciar R25 y R26
-	LDS		R16, UMES
-	CPI		R16, 1
-	BRNE	R_INCD0
-	LDI		R25, 32
-	LDI		R26, 31
-R_INCD0:
-	CPI		R16, 7
-	BRNE	R_INCD
-	LDI		R25, 32
-	LDI		R26, 31
 R_INCD:
+	LDS		R16, UMES
+	CPI		R16, 1									//Que sea enero, se puede confundir con noviembre
+	BRNE	R_ILINCD
+	LDS		R16, DMES
+	SBRC	R16, 0									//Salta si es Enero
+	RJMP	R_ILINCD
+
+	//Reversión de lógica
+	LDI		R25, 32
+	LDI		R26, 31				
+R_ILINCD:
 	RET
 
 INCMES:
 	LDS		R16, DMES
 	CPI		R16, 0x00
 	BRNE	INCDM
-	LDS		R16, UMES									//Incrementar unidades 
+	LDS		R16, UMES								//Incrementar unidades 
 	INC		R16
 	STS		UMES, R16
 	CPI		R16, 10
-	BRNE	D_INCME
-	LDI		R16, 0x00									//Reinciar las unidades
+	BRNE	R_INCME
+	LDI		R16, 0x00								//Reinciar las unidades
 	STS		UMES, R16
-	LDS		R16, DMES									//Incrementar las decenas
+	LDS		R16, DMES								//Incrementar las decenas
 	INC		R16
 	STS		DMES, R16	
-	RJMP	D_INCME
+	RJMP	R_INCM
 INCDM:
-	LDS		R16, UMES									//Incrementar unidades 
+	LDS		R16, UMES								//Incrementar unidades 
 	INC		R16
 	STS		UMES, R16
-	CPI		R16,	3									//Ahora el overflow se hace en 2
-	BRNE	D_INCME
-	LDI		R16, 0x01									//Resetear unidades
+	CPI		R16,	3								//Ahora el overflow se hace en 2
+	BRNE	R_INCME
+	LDI		R16, 0x01								//Resetear unidades
 	STS		UMES, R16
-	LDI		R16, 0x00									//Reinciar las decenas
+	LDI		R16, 0x00								//Reinciar las decenas
 	STS		DMES, R16
-D_INCME:
+R_INCME:
 	RET
 
 /***************Logica para incrementar***************/
@@ -968,16 +980,20 @@ UNDFDME2:
 DECDAYS:
 	//Ver que la logica a usar dependende si estamos antes de agosto o despues
 	LDS		R16, UMES
-	CPI		R16, 8										//Si es igual a 7 ir LOVF2
-	BRNE	LUNDF1										//mientra no sea igual a 7 ir LOVF1
+	CPI		R16, 2										//Si es igual a 2 (si es diciembre) ir a LOVF2
+	BRNE	LUNDF1										//mientra no sea igual a 2 ir LOVF1
+	LDS		R16, DMES
+	SBRS	R16, 0										//Salta si las decenas son 1, es decir es diciembre
+	RJMP	LUNDF1										//No invertir lógica
 LUNDF2:
 	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 0
 	Los de 30 terminan en 1*/
-	LDI		R25, 31										//Se cambia la lógica
+	LDI		R25, 31										//Se cambia la l?gica
 	LDI		R26, 32
 LUNDF1:
 	//De enero (0x01) a Julio (0x07) los meses de 31 dias terminan en 1
 	//Los de 30 terminan en 0 excepto febrero.
+	LDS		R16, UMES
 	SBRC	R16, 0										//Revisar si el mes termina en 0 o en 1
 	MOV		LIMIT_OVF, R25								// 31
 	SBRS	R16, 0
@@ -985,26 +1001,26 @@ LUNDF1:
 	CPI		R16, 2										//Mientras no sea febrero usar 30 o 31 como limite
 	BRNE	SALTO
 	LDS		R16, DMES
-	SBRS	R16, 0										//Para diferencia diciembre de enero.
+	SBRS	R16, 0										//Es para diferenciar diciembre de febrero
 	LDI		LIMIT_OVF, 29
 SALTO:
 	CPI		DIAS, 1
 	BRNE	DECUD										//Decrementar Dias
-	//Lógica de underflow de dias
+	//Logica de underflow de dias
 	
 	//Reiniciar los dias dependiendo del mes en el que estamos
 	SBRC	LIMIT_OVF, 5	
 	LDI		DIAS, 31								
 	SBRS	LIMIT_OVF, 5
 	LDI		DIAS, 30		
-	CPI		LIMIT_OVF, 29								//Mientras estemos en febrero se cambiara la lógica
+	CPI		LIMIT_OVF, 29								//Mientras estemos en febrero se cambiara la l?gica
 	BRNE	UNDFDD
 	LDI		DIAS, 28
 	LDI		R16, 8									//Realizar el underflow especial para febrero.
 	STS		UDIAS, R16
 	LDI		R16, 2
 	STS		DDIAS, R16
-	RJMP	RLI
+	RJMP	R_LUNDF 
 UNDFDD:	
 	LDI		R16, 3									//Las decenas siempre se resetean en 3
 	STS		DDIAS, R16
@@ -1013,7 +1029,7 @@ UNDFDD:
 	SBRC	LIMIT_OVF, 5								//Salta si LIMIT_OVF --> 0001 1111 = 31
 	LDI		R16, 1
 	STS		UDIAS, R16
-	RJMP	RLI
+	RJMP	R_LUNDF
 DECUD:
 	DEC		DIAS
 	LDS		R16, UDIAS
@@ -1021,28 +1037,23 @@ DECUD:
 	BREQ	UNDFUD
 	DEC		R16									//Decrementar unidades de dias
 	STS		UDIAS, R16
-	RJMP	RLI
+	RJMP	R_LUNDF
 UNDFUD:
 	LDI		R16, 9									//Setear las unidades de dias en 9
 	STS		UDIAS, R16
 	LDS		R16, DDIAS								//Decrementar decenas de dias
 	DEC		R16
 	STS		DDIAS, R16
-RLI:
-	// Reiniciar R25 y R26
+R_LUNDF:
 	LDS		R16, UMES
-	CPI		R16, 1
-	BRNE	RLIDEC
+	CPI		R16, 7									//Si es Julio invertir logica
+	BRNE	R_ILUNDF0
 	LDI		R25, 32
 	LDI		R26, 31
-RLIDEC:
-	CPI		R16, 7
-	BRNE	SALIDA
-	LDI		R25, 32
-	LDI		R26, 31
-SALIDA:
+R_ILUNDF0:
+	//Si es enero volver a invertir lógica
+R_ILUNDF:
 	RET
-
 /***************Logica para decrementar***************/
 
 
