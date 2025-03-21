@@ -253,10 +253,30 @@ OFFAA:
 	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
 	//Apagar la bandera de fecha
 	SBRC	FLAGS_MP, 7
-	EOR		FLAGS_MP, R16									
+	EOR		FLAGS_MP, R16		
+
+	//Parpadear la leds de estado roja
+	SBI		PORTC, 5
+	CBI		PORTC, 4
+
+	CALL	DELAY	
+	CALL	DELAY	
+	CALL	DELAY									//Perdemos 10 ms
+	CALL	DELAY
+	CALL	DELAY		
+	CALL	DELAY	
+	CALL	DELAY	
+	CALL	DELAY									//Perdemos 10 ms
+	CALL	DELAY
+	CALL	DELAY
+	CALL	DELAY	
+	CALL	DELAY	
+	
+		
 	//Apagar todas las leds de estado				
 	SBI		PORTC, 4								
 	SBI		PORTC, 5		
+
 	//Actualizar CLK							
 	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
 	CALL	LOGICH
