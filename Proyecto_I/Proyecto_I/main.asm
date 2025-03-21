@@ -138,7 +138,12 @@ SETUP:
 	STS		UMIN, R16								
 	STS		DMIN, R16								
 	STS		UHOR, R16								
-	STS		DHOR, R16		
+	STS		DHOR, R16
+	//Alarma
+	STS		UMA, R16
+	STS		DMA, R16
+	STS		UHA, R16
+	STS		DHA, R16		
 	//DIAS																	
 	STS		DMES, R16
 	STS		DDIAS, R16
@@ -163,17 +168,36 @@ SETUP:
 CONFI_ALARMA:
 	//Encender la led de alarma (ROJA)				
 	SBI		PORTC, 5								
-	CBI		PORTC, 4		
+	CBI		PORTC, 4	
+	//Bandera de modo configuracion de alarma
+	LDI		R16, 0x30								//LDI	R16, (1<<UDA) | (1<<BUCLEA)
+	EOR		FLAGS_MP1, R16	
+
 	//Es la misma logica que en configuración de hora lo unico que no se debe modificar la hora
 	//Se guardan las unidades y decenas de horas y minutos
 	LDS		R16, UHOR
-	PUSH	R16
+	MOV		R15, R16
 	LDS		R16, DHOR	
-	PUSH	R16
+	MOV		R14, R16
 	LDS		R16, UMIN	
-	PUSH	R16
+	MOV		R13, R16
 	LDS		R16, DMIN
-	PUSH	R16	
+	MOV		R12, R16
+	//Establecemos las decenas y unidades de la alarma configurada anteriormente
+	LDS		R16, DMA
+	STS		DMIN, R16
+	LDS		R16, UMA
+	STS		UMIN, R16
+	LDS		R16, DHA
+	STS		DHOR, R16
+	LDS		R16, UHA
+	STS		UHOR, R16
+	//Limpiar la bandera ALARMA_CONF
+	LDI		R16, 0x40								//LDI	R16, (1<<ALARMA_CONF)
+	SBRC	FLAGS_MP1, 6
+	EOR		FLAGS_MP1, R16							//Si esta encendida apagar bandera
+
+BUCLE:
 	//Verificar los datos para el multiplexeo HORAS
 	LDI		R16, 0x40								//LDI	R16, (1<<HORA)
 	//Encender la bandera de HORA
@@ -188,7 +212,6 @@ CONFI_ALARMA:
 	CALL	INCREMENTAR
 	SBRC	FLAGS_MP, 2								//Si Decrementar --> 1 decrementar
 	CALL	DECREMENTAR
-
 	//Guardar los valores de minutos y horas en las localidades de las alarmas
 	LDS		R16, DMIN
 	STS		DMA, R16
@@ -198,24 +221,24 @@ CONFI_ALARMA:
 	STS		UHA, R16
 	LDS		R16, DHOR
 	STS		DHA, R16
-
-	//Luego de usar las unidades y decenas de horas y minutos las reestablecemos
-	POP		R16
-	STS		DMIN, R16
-	POP		R16
-	STS		UMIN, R16
-	POP		R16
-	STS		DHOR, R16
-	POP		R16
-	STS		UHOR, R16
-	//Mostrar los valores de la alarma sin modificar los registros de horas y minutos reales
-	CALL	MULTIPLEX	
+	CALL	MULTIPLEX
+	SBRC	FLAGS_MP1, 5							//Sale del bucle con el botón de modo
+	RJMP BUCLE
+END_BUCLE:
+	//Reestablecemos las unidades y decenas de horas y minutos las reestablecemos
+	STS		DMIN, R12
+	STS		UMIN, R13
+	STS		DHOR, R14
+	STS		UHOR, R15
+	//Apagamos la bandera de UDA
+	LDI		R16, 0x50								// LDI	R16, (1<<UDA) | (1<<ALARMA_CONF)
+	EOR		FLAGS_MP1, R16
 	//Actualizar CLK							
-	//SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
-	//CALL	LOGICH
+	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
+	CALL	LOGICH
 	//Actualizar fecha
 	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
-	CALL	LOGICF				
+	CALL	LOGICF	
 	RJMP	MAIN	
 	
 CONFIA:
@@ -431,13 +454,18 @@ ISR_PCINT1:
 	EOR		FLAGS_MP, R16								//Encender la bandera de decremento
 	LDI		R16, 0x08									//LDI	R16, (1<<UNIDEC) 
 	SBRS	SET_PB_N, 2									//Si presiono el boton 2, el bit 2 esta en LOW
-	EOR		FLAGS_MP, R16									//Encender la bandera de uni
+	EOR		FLAGS_MP, R16								//Encender la bandera de UNIDEC
 	//Boton de cambio de modo
 	SBRS	SET_PB_N, 3
 	INC		FLAG_STATE
 	CPI		FLAG_STATE,0x06
-	BRNE	RETORN0
+	BRNE	FIN_CA
 	LDI		FLAG_STATE, 0x00
+FIN_CA:
+	CPI		FLAG_STATE, 0x05
+	BRNE	RETORNO
+	LDI		R16, 0x20									//LDI	R16, (1<<BUCLE_DA)
+	EOR		FLAGS_MP1, R16								//Salir del bucle
 RETORNO:
 	POP		R16
 	OUT		SREG, R16
@@ -479,12 +507,12 @@ MOV_POINTER2:
 
 
 
-/***************Multiplexeo para fechas***************/
+/***************Multiplexeo para displays***************/
 MULTIPLEX:
 	//Unidades de minutos/MES	Display 3
 	LDS		R16, UMA								//Mostrar las unidades de minutos de la alarma
-	CPI		FLAG_STATE, 0x04
-	BREQ	DISPLAY3								//Saltar solo si estamos en modo config Alarma
+	SBRC	FLAGS_MP1, 4							//Salta si UDA --> 0
+	RJMP	DISPLAY3
 	SBRC	FLAGS_MP, 6								// HORA --> 1 usar unidades de minuto
 	LDS		R16, UMIN
 	SBRC	FLAGS_MP, 7								// FECHA --> 1 usar unidades mes
@@ -499,8 +527,8 @@ DISPLAY3:
 
 	//Decenas de minutos/MES Display 2
 	LDS		R16, DMA									//Mostrar las decenas de minutos de la alarma
-	CPI		FLAG_STATE, 0x04
-	BREQ	DISPLAY2									//Saltar solo si estamos en modo config Alarma
+	SBRC	FLAGS_MP1, 4							//Salta si UDA --> 0
+	RJMP	DISPLAY2
 	SBRC	FLAGS_MP, 6									// HORA --> 1 usar decenas de minuto
 	LDS		R16, DMIN
 	SBRC	FLAGS_MP, 7									// FECHA --> 1 usar decenas mes
@@ -513,8 +541,8 @@ DISPLAY2:
 
 	//Unidades de horas/dias Display1
 	LDS		R16, UHA									//Mostrar las unidades de hora de la alarma
-	CPI		FLAG_STATE, 0x04
-	BREQ	DISPLAY1									//Saltar solo si estamos en modo config Alarma
+	SBRC	FLAGS_MP1, 4
+	RJMP	DISPLAY1									//Saltar solo si estamos en modo config Alarma
 	SBRC	FLAGS_MP, 6									// HORA --> 1 usar unidades de horas
 	LDS		R16, UHOR
 	SBRC	FLAGS_MP, 7									// FECHA --> 1 usar Unidades de dias
@@ -532,8 +560,8 @@ DISPLAY1:
 
 	//Decenas de horas/dias Display0
 	LDS		R16, DHA									//Mostrar las decenas de horas de la alarma
-	CPI		FLAG_STATE, 0x04
-	BREQ	DISPLAY0									//Saltar solo si estamos en modo config Alarma
+	SBRC	FLAGS_MP1, 4
+	RJMP	DISPLAY0									//Saltar solo si estamos en modo config Alarma
 	SBRC	FLAGS_MP, 6									// HORA --> 1 usar decenas de hpras
 	LDS		R16, DHOR
 	SBRC	FLAGS_MP, 7									// FECHA --> 1 usar decenas dias
@@ -545,7 +573,7 @@ DISPLAY0:
 	CALL	DELAY
 	CBI		PORTB, 0
 	RET
-/***************Multiplexeo para fechas**********************/
+/***************Multiplexeo para displays**********************/
 
 /***************Logica de CLK**********************/
 LOGICH:	
