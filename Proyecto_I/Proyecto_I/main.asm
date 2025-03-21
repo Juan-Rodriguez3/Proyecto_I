@@ -245,7 +245,6 @@ CONFIA:
 	RJMP	CONFI_ALARMA
 
 OFFAA:
-	CBI		PORTB, 4
 	//Verificar los datos para el multiplexeo HORAS
 	LDI		R16, 0x40								//LDI	R16, (1<<HORA)
 	//Encender la bandera de HORA
@@ -254,7 +253,7 @@ OFFAA:
 	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
 	//Apagar la bandera de fecha
 	SBRC	FLAGS_MP, 7
-	EOR		FLAGS_MP, R16										
+	EOR		FLAGS_MP, R16									
 	//Apagar todas las leds de estado				
 	SBI		PORTC, 4								
 	SBI		PORTC, 5		
@@ -263,8 +262,15 @@ OFFAA:
 	CALL	LOGICH
 	//Actualizar fecha
 	SBRC	FLAGS_MP, 0								//Si FLAG OVFD >> SET actualizar fecha																																			
-	CALL	LOGICF						
-	RJMP	MAIN											
+	CALL	LOGICF
+	//Multiplexeo								
+	CALL	MULTIPLEX
+	SBRS	FLAGS_MP, 4						
+	RJMP	MAIN	
+	LDI		R16, 0X10								//Apagar bandera de alarma
+	EOR		FLAGS_MP, R16
+	CBI		PORTB, 4								//Apagar la alarma
+	RJMP	MAIN		
 /********************Modos********************/
 													
 /******************LOOP***********************/		
@@ -292,7 +298,6 @@ HORA:
 	//Encender la bandera de HORA
 	SBRS	FLAGS_MP, 6
 	EOR		FLAGS_MP, R16
-
 	LDI		R16, 0x80								//LDI	R16, (1<<FECHA)
 	//Apagar la bandera de fecha
 	SBRC	FLAGS_MP, 7
@@ -405,9 +410,35 @@ ISR_TIMER1:
 	
 	//Activar bandera para incrementar unidades de tiempo
 	LDI		R16, 0x20								//LDI R16, (1<<CLK)
-	EOR		FLAGS_MP, R16	
-		
+	EOR		FLAGS_MP, R16
+	
+	//Saltar solo si la alarma ha sido configurada	
+	SBRS	FLAGS_MP1, 6							//Salta si Flag ALARMA_CONF --> 1
+	JMP		RTIMER1									//Si no ha sido configurada no sonara.
+	//Logica de alarma
+	LDS		R16, DHOR
+	LDS		R27, DHA
+	CP		R16, R27								//Comparar decenas de hora
+	BRNE	RTIMER1
+	LDS		R16, UHOR
+	LDS		R27, UHA
+	CP		R16, R27								//Comparar unidades de hora
+	BRNE	RTIMER1	
+	//Logica de alarma
+	LDS		R16, DMIN
+	LDS		R27, DMA
+	CP		R16, R27								//Comparar decenas de minuto
+	BRNE	RTIMER1
+	LDS		R16, UMIN
+	LDS		R27, UMA
+	CP		R16, R27								//Comparar unidades de minuto
+	BRNE	RTIMER1	
+	//Si llegamos aca es porque los registros de alarma son iguales a los de la hora
+	SBI		PORTB, 4								//Encender la alarma
+	LDI		R16, 0x10								//LDI	R16, (1<<Alarma)
+	EOR		FLAGS_MP, R16							//Encender la bandera de alarma encendida
 	//Retorno	
+RTIMER1:
 	POP		R16
 	OUT		SREG, R16
 	POP		R16
