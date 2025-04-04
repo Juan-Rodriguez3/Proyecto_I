@@ -19,7 +19,7 @@
 .def	FLAGS_MP1=R22						//Bandera Multiproposito 1
 .def	LIMIT_OVF=R23						//Contador de dias y meses
 .def	DIAS=R24							//Contador de dias y meses
-.equ	T1VALUE= 64558						//Valor inicial para la interrupcion de 60 seg
+.equ	T1VALUE= 6941						//Valor inicial para la interrupcion de 60 seg
 .equ	T0VALUE=11							//Valor para interrupcion de 250 ms
 .equ	T2VALUE=224							//Valor para interrupcion de 2 ms
 .dseg
@@ -173,7 +173,7 @@ CONFI_ALARMA:
 	LDI		R16, 0x30								//LDI	R16, (1<<UDA) | (1<<BUCLEA)
 	EOR		FLAGS_MP1, R16	
 
-	//Es la misma logica que en configuración de hora lo unico que no se debe modificar la hora
+	//Es la misma logica que en configuraci?n de hora lo unico que no se debe modificar la hora
 	//Se guardan las unidades y decenas de horas y minutos
 	LDS		R16, UHOR
 	MOV		R15, R16
@@ -222,7 +222,7 @@ BUCLE:
 	LDS		R16, DHOR
 	STS		DHA, R16
 	CALL	MULTIPLEX
-	SBRC	FLAGS_MP1, 5							//Sale del bucle con el botón de modo
+	SBRC	FLAGS_MP1, 5							//Sale del bucle con el bot?n de modo
 	RJMP BUCLE
 END_BUCLE:
 	//Reestablecemos las unidades y decenas de horas y minutos las reestablecemos
@@ -258,25 +258,7 @@ OFFAA:
 	//Parpadear la leds de estado roja
 	SBI		PORTC, 5
 	CBI		PORTC, 4
-
-	CALL	DELAY	
-	CALL	DELAY	
-	CALL	DELAY									//Perdemos 10 ms
-	CALL	DELAY
-	CALL	DELAY		
-	CALL	DELAY	
-	CALL	DELAY	
-	CALL	DELAY									//Perdemos 10 ms
-	CALL	DELAY
-	CALL	DELAY
-	CALL	DELAY	
-	CALL	DELAY	
 	
-		
-	//Apagar todas las leds de estado				
-	SBI		PORTC, 4								
-	SBI		PORTC, 5		
-
 	//Actualizar CLK							
 	SBRC	FLAGS_MP, 5								//Si el bit CLK esta LOW saltar
 	CALL	LOGICH
@@ -432,9 +414,6 @@ ISR_TIMER1:
 	LDI		R16, 0x20								//LDI R16, (1<<CLK)
 	EOR		FLAGS_MP, R16
 	
-	//Saltar solo si la alarma ha sido configurada	
-	SBRS	FLAGS_MP1, 6							//Salta si Flag ALARMA_CONF --> 1
-	JMP		RTIMER1									//Si no ha sido configurada no sonara.
 	//Logica de alarma
 	LDS		R16, DHOR
 	LDS		R27, DHA
@@ -451,6 +430,7 @@ ISR_TIMER1:
 	BRNE	RTIMER1
 	LDS		R16, UMIN
 	LDS		R27, UMA
+	INC		R16
 	CP		R16, R27								//Comparar unidades de minuto
 	BRNE	RTIMER1	
 	//Si llegamos aca es porque los registros de alarma son iguales a los de la hora
@@ -933,7 +913,7 @@ R_INCD:
 	SBRC	R16, 0									//Salta si es Enero
 	RJMP	R_ILINCD
 
-	//Reversión de lógica
+	//Reversi?n de l?gica
 	LDI		R25, 32
 	LDI		R26, 31				
 R_ILINCD:
@@ -1091,7 +1071,7 @@ DECDAYS:
 	BRNE	LUNDF1										//mientra no sea igual a 2 ir LOVF1
 	LDS		R16, DMES
 	SBRS	R16, 0										//Salta si las decenas son 1, es decir es diciembre
-	RJMP	LUNDF1										//No invertir lógica
+	RJMP	LUNDF1										//No invertir l?gica
 LUNDF2:
 	/*De Agosto (0x07) a diciembre (0x0B) los meses de 31 dias terminan en 0
 	Los de 30 terminan en 1*/
@@ -1158,7 +1138,7 @@ R_LUNDF:
 	LDI		R25, 32
 	LDI		R26, 31
 R_ILUNDF0:
-	//Si es enero volver a invertir lógica
+	//Si es enero volver a invertir l?gica
 R_ILUNDF:
 	RET
 /***************Logica para decrementar***************/
