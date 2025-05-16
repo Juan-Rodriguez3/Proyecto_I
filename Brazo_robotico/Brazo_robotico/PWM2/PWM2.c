@@ -16,7 +16,7 @@
 	}
 
 	uint8_t DutyCycle4( uint8_t valor_ADC){
-		return (6UL+(valor_ADC*9UL)/255);
+		return (6UL+(valor_ADC*8UL)/255);
 		/*Servo de la garra
 		
 		*/
@@ -56,34 +56,29 @@
 		
 		switch (mode)
 		{
-			case 1:	 //normal
+			case 1:	 //PWM Phase correct
 			TCCR2A |= (1<<WGM20);
 			break;
 			
-			case 2:	//PWM Phase correct 9 bits
+			case 2:	//CTC
 			TCCR2A |= (1<<WGM21);
 			break;
 			
-			case 3:	//PWM Phase correct 10 bits
+			case 3:	//PWM FAST 
 			TCCR2A |= (1<<WGM21) | (1<<WGM20);
 			break;
 			
-			case 5: //PWM Fast  bits
+			case 5: //PWM phase correct TOP - OCRA en este caso OCR2A
 			TCCR2A |= (1<<WGM20);
 			TCCR2B |= (1<<WGM22);
 			break;
 			
-			case 6: //PWM Fast 10 bits
-			TCCR2A |= (1<<WGM21)|(1<<WGM20);
+			case 7:	//PWM FAST top - OCRA
 			TCCR2B |= (1<<WGM22);
-			break;
-			
-			case 7:	//PWM Phase and frecuency correct TOP=OCR1A
-			TCCR2B |= (1<<WGM12);
-			TCCR2A |= (1<<WGM10);
+			TCCR2A |= (1<<WGM20)|(1<<WGM21);
 			break;
 
-			default:
+			default:	//normal
 			TCCR2B &= ~(1<<WGM22);
 			TCCR2A &= ~((1<<WGM21) | (1<<WGM20));
 			break;

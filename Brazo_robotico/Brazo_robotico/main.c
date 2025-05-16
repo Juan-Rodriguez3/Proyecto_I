@@ -59,7 +59,7 @@ int main(void)
 			 case 0:	//modo manual
 			 PORTD &= ~((1<<PORTD4)|(1<<PORTD5));	//LEDs de estado apagadas
 			 
-			 if (Save_Position>1){
+			 if (Save_Position>=1){
 				 PORTD |= (1<<PORTD6);
 				 _delay_ms(100);
 				 PORTD &= ~(1<<PORTD6);
@@ -71,7 +71,7 @@ int main(void)
 			 PORTD &= ~((1<<PORTD5));			//LED azul encendida -->EEPROM
 			 PORTD |= (1<<PORTD4);
 			 
-			 if (Execute_Position>1){
+			 if (Execute_Position>=1){
 				 PORTD |= (1<<PORTD6);
 				 _delay_ms(100);
 				 PORTD &= ~(1<<PORTD6);
@@ -161,7 +161,7 @@ void ExcuteEEPROM_Position(unsigned int direction0,unsigned int direction1,unsig
 //Controla el estado
 ISR(PCINT0_vect){
 	//Antirebote
-	if ((PINB&(1<<PINB4)) ==0){
+	if ((PINB&(1<<PINB4))==0){
 		//_delay_ms(50);
 		//if ((PINB&(1<<PINB4)) ==0){
 			//Boton presionado
@@ -193,67 +193,80 @@ bot?n 4 --> posici?n 4
 ISR(PCINT1_vect){
 	switch(modo){
 		case 0:		//Modo manual guardar el Dutycycle de los 4 servos
-		if (Save_Position==0){
-			if ((PINC&(0x0F))==0x0F){
-				Save_Position=1;
-				
-			}
+		
+		if (((PINC&(1<<PINC0))==0) && ((PINC&((1<<PINC1)|(1<<PINC2)|(1<<PINC3)))== 0x0E)){
+			Save_Position=1;
+			//Escribir en la eprom la nueva posici?n 1
+			//SaveinEEPROM_Position(0,1,2,3,4,5);
+			write_EEPROM(0, OCR1AL);
+			write_EEPROM(1, OCR1AH);
+			write_EEPROM(2, OCR1BL);
+			write_EEPROM(3, OCR1BH);
+			write_EEPROM(4, OCR2A);
+			write_EEPROM(5, OCR2B);
 		}
-		else if (Save_Position==1){
-			//Parpadeo que confirma que se guardo la posici?n
-			if (((PINC&(1<<PINC0))==0) && ((PINC&((1<<PINC1)|(1<<PINC2)|(1<<PINC3)))== 0x0E)){
-				Save_Position =2;
-				//Escribir en la eprom la nueva posici?n 1
-				SaveinEEPROM_Position(0,1,2,3,4,5);
-			}
-			else if (((PINC&(1<<PINC1))==0) && ((PINC&((1<<PINC0)|(1<<PINC2)|(1<<PINC3)))== 0x0D)){
-				Save_Position =3;
-				//Escribir en la eprom la nueva posici?n 2
-				SaveinEEPROM_Position(6,7,8,9,10,11);
-			}
-			else if (((PINC&(1<<PINC2))==0) && ((PINC&((1<<PINC0)|(1<<PINC1)|(1<<PINC3)))== 0x0B)){
-				Save_Position =4;
-				//Escribir en la eprom la nueva posici?n 3
-				SaveinEEPROM_Position(12,13,14,15,16,17);
-			}
-			else if (((PINC&(1<<PINC3))==0) && ((PINC&((1<<PINC0)|(1<<PINC1)|(1<<PINC2)))== 0x07)){
-				Save_Position =5;
-				//Escribir en la eprom la nueva posici?n 4
-				SaveinEEPROM_Position(18,19,20,21,22,23);
-			}
+		else if (((PINC&(1<<PINC1))==0) && ((PINC&((1<<PINC0)|(1<<PINC2)|(1<<PINC3)))== 0x0D)){
+			Save_Position =2;
+			//Escribir en la eprom la nueva posici?n 2
+			//SaveinEEPROM_Position(6,7,8,9,10,11);
+			write_EEPROM(6, OCR1AL);
+			write_EEPROM(7, OCR1AH);
+			write_EEPROM(8, OCR1BL);
+			write_EEPROM(9, OCR1BH);
+			write_EEPROM(10, OCR2A);
+			write_EEPROM(11, OCR2B);
+		}
+		else if (((PINC&(1<<PINC2))==0) && ((PINC&((1<<PINC0)|(1<<PINC1)|(1<<PINC3)))== 0x0B)){
+			Save_Position =3;
+			//Escribir en la eprom la nueva posici?n 3
+			//SaveinEEPROM_Position(12,13,14,15,16,17);
+		}
+		else if (((PINC&(1<<PINC3))==0) && ((PINC&((1<<PINC0)|(1<<PINC1)|(1<<PINC2)))== 0x07)){
+			Save_Position =4;
+			//Escribir en la eprom la nueva posici?n 4
+			//SaveinEEPROM_Position(18,19,20,21,22,23);
 		}
 		break;
 		
 		case 1:
-		if (Execute_Position==0){
-			if ((PINC&(0x0F))==0x0F){
-				Execute_Position=1;
-				
-			}
+		//Parpadeo que confirma que se guardo la posici?n
+		if (((PINC&(1<<PINC0))==0) && ((PINC&((1<<PINC1)|(1<<PINC2)|(1<<PINC3)))== 0x0E)){
+			Execute_Position =1;
+			//Escribir en la eprom la nueva posici?n 1
+			//ExcuteEEPROM_Position(0,1,2,3,4,5);
+			
+			OCR1A = read_EEPROM(1)| read_EEPROM(0);
+			
+			OCR1BL =read_EEPROM(2);
+			OCR1BH =read_EEPROM(3);
+			OCR2A  =read_EEPROM(4);
+			OCR2B  =read_EEPROM(5);
+			
 		}
-		else if (Execute_Position==1){
-			//Parpadeo que confirma que se guardo la posici?n
-			if (((PINC&(1<<PINC0))==0) && ((PINC&((1<<PINC1)|(1<<PINC2)|(1<<PINC3)))== 0x0E)){
-				Execute_Position =2;
-				//Escribir en la eprom la nueva posici?n 1
-				ExcuteEEPROM_Position(0,1,2,3,4,5);
-			}
-			else if (((PINC&(1<<PINC1))==0) && ((PINC&((1<<PINC0)|(1<<PINC2)|(1<<PINC3)))== 0x0D)){
-				Execute_Position =3;
-				//Escribir en la eprom la nueva posici?n 2
-				ExcuteEEPROM_Position(6,7,8,9,10,11);
-			}
-			else if (((PINC&(1<<PINC2))==0) && ((PINC&((1<<PINC0)|(1<<PINC1)|(1<<PINC3)))== 0x0B)){
-				Execute_Position =4;
-				//Escribir en la eprom la nueva posici?n 3
-				ExcuteEEPROM_Position(12,13,14,15,16,17);
-			}
-			else if (((PINC&(1<<PINC3))==0) && ((PINC&((1<<PINC0)|(1<<PINC1)|(1<<PINC2)))== 0x07)){
-				Execute_Position =5;
-				//Escribir en la eprom la nueva posici?n 4
-				ExcuteEEPROM_Position(18,19,20,21,22,23);
-			}
+		else if (((PINC&(1<<PINC1))==0) && ((PINC&((1<<PINC0)|(1<<PINC2)|(1<<PINC3)))== 0x0D)){
+			Execute_Position =2;
+			//Escribir en la eprom la nueva posici?n 2
+			//ExcuteEEPROM_Position(6,7,8,9,10,11);
+			
+			//OCR1AL =read_EEPROM(6);
+			//OCR1AH =read_EEPROM(7);
+			OCR1A = read_EEPROM(6)| read_EEPROM(7);
+			OCR1BL =read_EEPROM(8);
+			OCR1BH =read_EEPROM(9);
+			OCR2A =read_EEPROM(10);
+			OCR2B =read_EEPROM(11);
 		}
+		else if (((PINC&(1<<PINC2))==0) && ((PINC&((1<<PINC0)|(1<<PINC1)|(1<<PINC3)))== 0x0B)){
+			Execute_Position =3;
+			//Escribir en la eprom la nueva posici?n 3
+			//ExcuteEEPROM_Position(12,13,14,15,16,17);
+		}
+		else if (((PINC&(1<<PINC3))==0) && ((PINC&((1<<PINC0)|(1<<PINC1)|(1<<PINC2)))== 0x07)){
+			Execute_Position =4;
+			//Escribir en la eprom la nueva posici?n 4
+			//ExcuteEEPROM_Position(18,19,20,21,22,23);
+		}
+		
 		break;
 		
 		default:
@@ -290,19 +303,19 @@ ISR(ADC_vect){
 		//Actualizamos el DutyCycle dependiendo de que canal se haya leido
 		switch(canal_ADC){
 			case 4:
-			OCR1A = DTC1;			// Actualizamos el duty cycle
+			OCR1A = DTC1;			// Actualizamos el duty cycle del rotor
 			break;
 			
 			case 5:
-			OCR1B = DTC2;			// Actualizamos el duty cycle
+			OCR1B = DTC2;			// Actualizamos el duty cycle //codo
 			break;
 			
 			case 6:
-			OCR2A = DTC3;			// Actualizamos el duty cycle
+			OCR2A = DTC3;			// Actualizamos el duty cycle de muñeca
 			break;
 			
 			case 7:
-			OCR2B = DTC4;			// Actualizamos el duty cycle
+			OCR2B = DTC4;			// Actualizamos el duty cycle de garra
 			break;
 			
 			default:
