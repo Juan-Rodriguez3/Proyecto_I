@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 uint16_t DutyCycle1(uint8_t lec_ADC){ //Rotor
-	return (1010UL + lec_ADC * (3080UL/255));  //Mapeo para el dutycycle del PWM
+	return (1010UL + lec_ADC * (3970UL/255));  //Mapeo para el dutycycle del PWM
 	//Para la posici?n 0? --> OCR1x = 1000
 	//Para la posici?n 180? --> OCR1x = 5000
 	//Diferencia/rango permitido 4000

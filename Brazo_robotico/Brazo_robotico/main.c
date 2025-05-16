@@ -28,10 +28,11 @@
 #define comparador 2
 
 
+
 //****Prototipo de funciones****
 void setup();
-void SaveinEEPROM_Position(unsigned int direction0,unsigned int direction1,unsigned int direction2,unsigned int direction3,unsigned int direction4,unsigned int direction5); //Funcion que guarda la posicion de los 4 servos
-void ExcuteEEPROM_Position(unsigned int direction0,unsigned int direction1,unsigned int direction2,unsigned int direction3, unsigned int direction4,unsigned int direction5); //Funcion que ejecuta la posicion guardada
+void SaveinEEPROM_Position(unsigned int direction0,unsigned int direction1,unsigned int direction2,unsigned int direction3); //Funcion que guarda la posicion de los 4 servos
+void ExcuteEEPROM_Position(unsigned int direction0,unsigned int direction1,unsigned int direction2,unsigned int direction3); //Funcion que ejecuta la posicion guardada
 
 //****Variables globales****
 volatile uint8_t modo=0;
@@ -46,6 +47,10 @@ volatile uint8_t canal_UART=0;
 volatile uint8_t Save_Position=1;
 volatile uint8_t Execute_Position=1;
 
+volatile uint8_t valorADC1= 0;
+volatile uint8_t valorADC2 = 0;
+volatile uint8_t valorADC3 = 0;
+volatile uint8_t valorADC4 = 0;
 
 /*********main*********/
 int main(void)
@@ -136,23 +141,19 @@ void setup(void){
 }
 
 //Funcion para guardar la posicion de los servos
-void SaveinEEPROM_Position(unsigned int direction0,unsigned int direction1,unsigned int direction2,unsigned int direction3,unsigned int direction4,unsigned int direction5) {
-	write_EEPROM(direction0, OCR1AL);
-	write_EEPROM(direction1, OCR1AH);
-	write_EEPROM(direction2, OCR1BL);
-	write_EEPROM(direction3, OCR1BH);
-	write_EEPROM(direction4, OCR2A);
-	write_EEPROM(direction5, OCR2B);
+void SaveinEEPROM_Position(unsigned int direction0,unsigned int direction1,unsigned int direction2,unsigned int direction3) {
+	write_EEPROM(direction0, valorADC1);
+	write_EEPROM(direction1, valorADC2);
+	write_EEPROM(direction2, OCR2A);
+	write_EEPROM(direction3, OCR2B);
 }
 
 //Funci?n para ejecutar una posicion guardada
-void ExcuteEEPROM_Position(unsigned int direction0,unsigned int direction1,unsigned int direction2,unsigned int direction3,unsigned int direction4,unsigned int direction5) {
-	OCR1AL =read_EEPROM(direction0);
-	OCR1AH =read_EEPROM(direction1);
-	OCR1BL =read_EEPROM(direction2);
-	OCR1BH =read_EEPROM(direction3);
-	OCR2A =read_EEPROM(direction4);
-	OCR2B =read_EEPROM(direction5);
+void ExcuteEEPROM_Position(unsigned int direction0,unsigned int direction1,unsigned int direction2,unsigned int direction3) {
+	OCR1A = DutyCycle1(read_EEPROM(direction0));
+	OCR1B = DutyCycle1(read_EEPROM(direction1));
+	OCR2A  =read_EEPROM(direction2);
+	OCR2B  =read_EEPROM(direction3);
 }
 
 
@@ -197,34 +198,22 @@ ISR(PCINT1_vect){
 		if (((PINC&(1<<PINC0))==0) && ((PINC&((1<<PINC1)|(1<<PINC2)|(1<<PINC3)))== 0x0E)){
 			Save_Position=1;
 			//Escribir en la eprom la nueva posici?n 1
-			//SaveinEEPROM_Position(0,1,2,3,4,5);
-			write_EEPROM(0, OCR1AL);
-			write_EEPROM(1, OCR1AH);
-			write_EEPROM(2, OCR1BL);
-			write_EEPROM(3, OCR1BH);
-			write_EEPROM(4, OCR2A);
-			write_EEPROM(5, OCR2B);
+			SaveinEEPROM_Position(0,1,2,3);
 		}
 		else if (((PINC&(1<<PINC1))==0) && ((PINC&((1<<PINC0)|(1<<PINC2)|(1<<PINC3)))== 0x0D)){
 			Save_Position =2;
 			//Escribir en la eprom la nueva posici?n 2
-			//SaveinEEPROM_Position(6,7,8,9,10,11);
-			write_EEPROM(6, OCR1AL);
-			write_EEPROM(7, OCR1AH);
-			write_EEPROM(8, OCR1BL);
-			write_EEPROM(9, OCR1BH);
-			write_EEPROM(10, OCR2A);
-			write_EEPROM(11, OCR2B);
+			SaveinEEPROM_Position(4,5,6,7);
 		}
 		else if (((PINC&(1<<PINC2))==0) && ((PINC&((1<<PINC0)|(1<<PINC1)|(1<<PINC3)))== 0x0B)){
 			Save_Position =3;
 			//Escribir en la eprom la nueva posici?n 3
-			//SaveinEEPROM_Position(12,13,14,15,16,17);
+			SaveinEEPROM_Position(8,9,10,11);
 		}
 		else if (((PINC&(1<<PINC3))==0) && ((PINC&((1<<PINC0)|(1<<PINC1)|(1<<PINC2)))== 0x07)){
 			Save_Position =4;
 			//Escribir en la eprom la nueva posici?n 4
-			//SaveinEEPROM_Position(18,19,20,21,22,23);
+			SaveinEEPROM_Position(12,13,14,15);
 		}
 		break;
 		
@@ -233,38 +222,31 @@ ISR(PCINT1_vect){
 		if (((PINC&(1<<PINC0))==0) && ((PINC&((1<<PINC1)|(1<<PINC2)|(1<<PINC3)))== 0x0E)){
 			Execute_Position =1;
 			//Escribir en la eprom la nueva posici?n 1
-			//ExcuteEEPROM_Position(0,1,2,3,4,5);
+			ExcuteEEPROM_Position(0,1,2,3);
 			
-			OCR1A = read_EEPROM(1)| read_EEPROM(0);
-			
-			OCR1BL =read_EEPROM(2);
-			OCR1BH =read_EEPROM(3);
-			OCR2A  =read_EEPROM(4);
-			OCR2B  =read_EEPROM(5);
+			/*Para los registros del timer1 guardo la lectura del ADC ya que esta si es 8 bit,
+			y mando a llamar la función para calcular su valor*/
+			OCR1A = DutyCycle1(read_EEPROM(0));
+			OCR1B = DutyCycle1(read_EEPROM(1));
+			OCR2A  =read_EEPROM(2);
+			OCR2B  =read_EEPROM(3);
 			
 		}
 		else if (((PINC&(1<<PINC1))==0) && ((PINC&((1<<PINC0)|(1<<PINC2)|(1<<PINC3)))== 0x0D)){
 			Execute_Position =2;
 			//Escribir en la eprom la nueva posici?n 2
-			//ExcuteEEPROM_Position(6,7,8,9,10,11);
-			
-			//OCR1AL =read_EEPROM(6);
-			//OCR1AH =read_EEPROM(7);
-			OCR1A = read_EEPROM(6)| read_EEPROM(7);
-			OCR1BL =read_EEPROM(8);
-			OCR1BH =read_EEPROM(9);
-			OCR2A =read_EEPROM(10);
-			OCR2B =read_EEPROM(11);
+			ExcuteEEPROM_Position(4,5,6,7);
+		
 		}
 		else if (((PINC&(1<<PINC2))==0) && ((PINC&((1<<PINC0)|(1<<PINC1)|(1<<PINC3)))== 0x0B)){
 			Execute_Position =3;
 			//Escribir en la eprom la nueva posici?n 3
-			//ExcuteEEPROM_Position(12,13,14,15,16,17);
+			ExcuteEEPROM_Position(8,9,10,11);
 		}
 		else if (((PINC&(1<<PINC3))==0) && ((PINC&((1<<PINC0)|(1<<PINC1)|(1<<PINC2)))== 0x07)){
 			Execute_Position =4;
 			//Escribir en la eprom la nueva posici?n 4
-			//ExcuteEEPROM_Position(18,19,20,21,22,23);
+			ExcuteEEPROM_Position(12,13,14,15);
 		}
 		
 		break;
@@ -300,22 +282,30 @@ ISR(ADC_vect){
 		DTC2= DutyCycle2(valorADC);		//codo
 		DTC3= DutyCycle3(valorADC);		//mu?eca
 		DTC4= DutyCycle4(valorADC);		//Garra
+		
+		
+		
+		
 		//Actualizamos el DutyCycle dependiendo de que canal se haya leido
 		switch(canal_ADC){
 			case 4:
 			OCR1A = DTC1;			// Actualizamos el duty cycle del rotor
+			valorADC1= valorADC;	//Este valor sirve para guardarlo en la EEPROM
 			break;
 			
 			case 5:
 			OCR1B = DTC2;			// Actualizamos el duty cycle //codo
+			valorADC2= valorADC;	//Este valor sirve para guardarlo en la EEPROM
 			break;
-			
+				
 			case 6:
 			OCR2A = DTC3;			// Actualizamos el duty cycle de muñeca
+			valorADC3= valorADC;	//Este valor sirve para guardarlo en la EEPROM
 			break;
 			
 			case 7:
 			OCR2B = DTC4;			// Actualizamos el duty cycle de garra
+			valorADC4= valorADC;	//Este valor sirve para guardarlo en la EEPROM
 			break;
 			
 			default:
