@@ -20,7 +20,7 @@ uint16_t DutyCycle1(uint8_t lec_ADC){ //Rotor
 }
 
 uint16_t DutyCycle2(uint8_t lec_ADC){	//codo
-	return (1345UL + lec_ADC * (2100UL/255));  //Mapeo para el dutycycle del PWM
+	return (1360UL + lec_ADC * (1400UL/255));  //Mapeo para el dutycycle del PWM
 	//Para la posici?n 0? --> OCR1x = 1000
 	//Para la posici?n 180? --> OCR1x = 5000
 	//Diferencia/rango permitido 4000

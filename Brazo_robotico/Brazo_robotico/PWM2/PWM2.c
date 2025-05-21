@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 	uint8_t DutyCycle3( uint8_t valor_ADC){ //muñeca
-		return (11UL+(valor_ADC*50UL)/255);
+		return (5UL+(valor_ADC*50UL)/255);
 	}
 
 	uint8_t DutyCycle4( uint8_t valor_ADC){
